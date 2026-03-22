@@ -1,0 +1,186 @@
+@model IEnumerable<FactorFitGym.Web.Models.Producto>
+
+@{
+    ViewData["Title"] = "Inventario de Productos";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5 mt-3 px-2">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Inventario</h2>
+        <p class="text-muted mb-0">Gestión de productos, bebidas y suplementos.</p>
+    </div>
+    <div class="d-flex gap-3 align-items-center">
+        <!-- Barra de búsqueda -->
+        <div class="input-group bg-white rounded-pill shadow-sm" style="width: 280px; overflow: hidden;">
+            <span class="input-group-text bg-white border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none ps-2" placeholder="Buscar producto...">
+        </div>
+
+        <a href="@Url.Action("Create", "Productos")" class="btn btn-brand rounded-pill px-5 shadow-sm fw-bold">Nuevo Producto</a>
+    </div>
+</div>
+
+<div class="px-2" style="padding-bottom: 2rem; overflow-x: hidden;">
+    <!-- Vista en tarjetas (Grid) -->
+    <div class="row g-4" id="inventoryGrid">
+        @foreach (var item in Model)
+        {
+            <!-- Alerta visual simple si el stock es bajo -->
+            bool isLowStock = item.Stock <= item.StockMinimo;
+            string borderClass = isLowStock ? "border-danger" : "border-0";
+            string bgIndicator = isLowStock ? "bg-danger" : "bg-success";
+
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3 product-card-container">
+                <div class="card shadow-sm h-100 transition-all @borderClass" style="border-radius: 20px; overflow: hidden; border-width: 2px;">
+                    <!-- Cabecera de la tarjeta -->
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0 position-relative">
+                        <div class="position-absolute top-0 end-0 mt-3 me-3">
+                            <span class="badge @bgIndicator rounded-pill shadow-sm px-3 py-2">
+                                @if (isLowStock)
+                                {
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> <span>Stock Bajo (@item.Stock)</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-box-seam me-1"></i> <span>@item.Stock unids.</span>
+                                }
+                            </span>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center bg-brand-light mb-3" style="width: 50px; height: 50px;">
+                            <i class="bi bi-bag-heart-fill text-brand fs-4"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1 product-name-filtro">@item.Nombre</h5>
+                        <small class="text-muted product-category-filtro">@item.Categoria</small>
+                    </div>
+
+                    <!-- Cuerpo -->
+                    <div class="card-body d-flex flex-column justify-content-between pb-3">
+                        <div class="mt-3 mb-4">
+                            <h3 class="fw-bold text-dark mb-0">@item.Precio.ToString("C")</h3>
+                            <small class="text-muted">Precio de Venta</small>
+                        </div>
+                        
+                        <!-- Acciones -->
+                        <div class="d-flex gap-2 w-100">
+                            <a href="@Url.Action("Edit", "Productos", new { id = item.Id })" class="btn btn-light text-dark fw-bold rounded-pill flex-grow-1 shadow-sm border" style="font-size: 0.9rem;">
+                                Editar
+                            </a>
+                            <form action="@Url.Action("Delete", "Productos", new { id = item.Id })" method="post" class="form-eliminar m-0">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn btn-light text-danger fw-bold rounded-circle shadow-sm border d-flex align-items-center justify-content-center btn-delete-prod" style="width: 40px; height: 40px;" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 mt-4 bg-white rounded-5 shadow-sm">
+            <div class="mb-3">
+                <i class="bi bi-box2-heart text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h5 class="text-dark fw-bold">Inventario Vacío</h5>
+            <p class="text-muted mb-4">No has registrado ningún producto en el sistema.</p>
+            <a href="@Url.Action("Create", "Productos")" class="btn btn-brand rounded-pill px-5 shadow-sm fw-bold">Agregar mi primer producto</a>
+        </div>
+    }
+    else
+    {
+        <div class="mt-4">
+            @await Html.PartialAsync("_Pagination")
+        </div>
+    }
+</div>
+
+<style>
+    .transition-all { transition: all 0.3s ease; }
+    .product-card-container .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check TempData Messages
+            @if(TempData["SuccessMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Operación Exitosa!',
+                    text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
+                    confirmButtonText: 'Genial',
+                    confirmButtonColor: '#28a745',
+                    customClass: { popup: 'rounded-5 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                });
+                </text>
+            }
+            @if(TempData["ErrorMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡No se puede eliminar!',
+                    text: @Html.Raw(Json.Serialize(TempData["ErrorMessage"])),
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#dc3545',
+                    customClass: { popup: 'rounded-5 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                });
+                </text>
+            }
+
+            // Búsqueda en tarjeta
+            const searchInput = document.getElementById('searchInput');
+            if(searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    let value = this.value.toLowerCase();
+                    const cards = document.querySelectorAll('.product-card-container');
+                    
+                    cards.forEach(card => {
+                        let name = card.querySelector('.product-name-filtro').textContent.toLowerCase();
+                        let category = card.querySelector('.product-category-filtro').textContent.toLowerCase();
+                        
+                        if(name.includes(value) || category.includes(value)) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Confirmación Estética de Eliminación (SweetAlert2)
+            const deleteButtons = document.querySelectorAll('.btn-delete-prod');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const form = this.closest('.form-eliminar');
+                    Swal.fire({
+                        title: '¿Eliminar Producto?',
+                        text: "Si ya vendiste este producto antes, no podrás eliminarlo. Lo ideal es actualizar su stock a 0.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ff6b6b',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, Eliminar',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'rounded-5 shadow-lg border-0',
+                            confirmButton: 'rounded-pill px-4 ms-2',
+                            cancelButton: 'rounded-pill px-4'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

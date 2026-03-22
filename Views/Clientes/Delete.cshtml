@@ -1,0 +1,42 @@
+@model FactorFitGym.Web.Models.Cliente
+
+@{
+    ViewData["Title"] = "Eliminar Cliente";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center" style="min-height: 75vh;">
+    <div class="col-12 col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 border-top border-danger border-4">
+            <div class="card-body text-center p-5">
+                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+                <h2 class="fw-bold mt-3 mb-4">¿Estás seguro?</h2>
+                <p class="text-muted fs-5 mb-4">
+                    Estás a punto de eliminar al cliente <strong class="text-dark">@Model.Nombre @Model.Apellido</strong>.
+                    <br/><br/>
+                    <span class="small text-danger">Esta acción no se puede deshacer y fallará si el cliente tiene registros asociados (pagos, membresías o asistencias).</span>
+                </p>
+
+                <div class="rounded p-4 bg-light text-start mb-4 shadow-inner">
+                    <div class="row border-bottom pb-2">
+                        <div class="col-sm-4 text-muted fw-bold">Teléfono:</div>
+                        <div class="col-sm-8 text-dark text-end">@(string.IsNullOrEmpty(Model.Telefono) ? "N/A" : Model.Telefono)</div>
+                    </div>
+                    <div class="row pt-2">
+                        <div class="col-sm-4 text-muted fw-bold">Género:</div>
+                        <div class="col-sm-8 text-dark text-end">@Model.Genero</div>
+                    </div>
+                </div>
+
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-trash-fill me-2"></i>Eliminar Cliente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

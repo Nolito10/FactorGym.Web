@@ -1,0 +1,288 @@
+@model IEnumerable<FactorFitGym.Web.Models.Cliente>
+
+@{
+    ViewData["Title"] = "Clientes";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <h2 class="fw-bold text-dark mb-0">Directorio de Clientes</h2>
+    <div class="d-flex gap-3 align-items-center">
+        <!-- Barra de búsqueda -->
+        <div class="input-group bg-white rounded-pill shadow-sm" style="width: 280px; overflow: hidden;">
+            <span class="input-group-text bg-white border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none ps-2" placeholder="Buscar cliente...">
+        </div>
+
+        <a href="@Url.Action("Create", "Clientes")" class="btn btn-brand rounded-pill px-5 shadow-sm fw-bold">Nuevo Registro</a>
+    </div>
+</div>
+
+<div class="px-2" style="padding-bottom: 2rem; overflow-x: hidden;">
+    <table class="table table-borderless align-middle w-100" id="clientesTable" style="border-collapse: separate; border-spacing: 0 15px;">
+        <thead class="text-secondary small text-uppercase fw-bold">
+            <tr>
+                <th class="ps-4 pb-2">Perfil</th>
+                <th class="pb-2">Teléfono</th>
+                <th class="pb-2 text-center">Género</th>
+                <th class="text-center pe-4 pb-2">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr class="cliente-row bg-white shadow-sm transition-all" style="border-radius: 20px;">
+                    <td class="ps-4 py-3" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px; width: 35%;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white me-3 shadow-sm" style="width: 50px; height: 50px; background-color: @(item.Genero == "Femenino" ? "#FF6B8B" : "#4A90E2");">
+                                <i class="bi @(item.Genero == "Femenino" ? "bi-gender-female" : "bi-gender-male") fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark nombre-cliente" style="font-size: 1.1rem;">@item.Nombre @item.Apellido</h6>
+                                <small class="text-muted d-none genero-filtro">@item.Genero</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3" style="width: 25%;">
+                        <div class="d-flex align-items-center text-muted">
+                            <i class="bi bi-telephone-fill me-2 fs-5 opacity-50"></i>
+                            <span class="text-dark fw-medium telf-cliente">@(string.IsNullOrEmpty(item.Telefono) ? "Sin registrar" : item.Telefono)</span>
+                        </div>
+                    </td>
+                    <td class="py-3 text-center" style="width: 20%;">
+                        <span class="badge @(item.Genero == "Femenino" ? "bg-danger" : "bg-primary") bg-opacity-10 @(item.Genero == "Femenino" ? "text-danger" : "text-primary") rounded-pill px-4 py-2 fw-bold" style="font-size: 0.9rem;">
+                            @item.Genero
+                        </span>
+                    </td>
+                    <td class="text-center pe-4 py-3" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 20%;">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light bg-opacity-50 border-0 text-info fw-bold px-3 rounded-pill d-flex align-items-center shadow-sm" title="Detalles">
+                                <i class="bi bi-eye-fill fs-5"></i>
+                            </a>
+                            
+                            <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-warning fw-bold px-3 rounded-pill btn-edit d-flex align-items-center shadow-sm" title="Editar"
+                                data-id="@item.Id" 
+                                data-nombre="@item.Nombre" 
+                                data-apellido="@item.Apellido" 
+                                data-telefono="@item.Telefono" 
+                                data-genero="@item.Genero"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalEdit">
+                                <i class="bi bi-pencil-fill fs-5"></i>
+                            </button>
+                            
+                            <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-danger fw-bold px-3 rounded-pill btn-delete d-flex align-items-center shadow-sm" title="Borrar"
+                                data-id="@item.Id"
+                                data-fullname="@item.Nombre @item.Apellido"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalDelete">
+                                <i class="bi bi-trash-fill fs-5"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @await Html.PartialAsync("_Pagination")
+</div>
+
+<!-- Estilo ad-hoc para el hover de fila (opcional) -->
+<style>
+    .transition-all { transition: all 0.3s ease; }
+    .cliente-row:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+</style>
+
+<!-- MODAL EDIT -->
+<div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-5 overflow-hidden">
+            <div class="bg-warning bg-opacity-10 py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                    <i class="bi bi-pencil-fill text-warning" style="font-size: 2rem;"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Modificar Datos</h4>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <form id="formEdit" action="@Url.Action("Edit", "Clientes")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="e_Id" />
+                    
+                    <div class="row g-4 mt-2 mb-4 px-md-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small">Nombre</label>
+                            <input type="text" name="Nombre" id="e_Nombre" class="form-control form-control-lg rounded-pill bg-light border-0 text-center fw-medium px-4" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small">Apellido</label>
+                            <input type="text" name="Apellido" id="e_Apellido" class="form-control form-control-lg rounded-pill bg-light border-0 text-center fw-medium px-4" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small">Teléfono / Celular</label>
+                            <input type="text" name="Telefono" id="e_Telefono" class="form-control form-control-lg rounded-pill bg-light border-0 text-center fw-medium px-4" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small">Género</label>
+                            <select name="Genero" id="e_Genero" class="form-select form-select-lg rounded-pill bg-light border-0 text-center fw-medium px-4">
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill px-5 fw-bold shadow-sm py-2">Actualizar Datos</button>
+                        <button type="button" class="btn btn-light rounded-pill fw-bold text-secondary px-5 py-2 shadow-sm border" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DELETE -->
+<div class="modal fade" id="modalDelete" tabindex="-1" aria-labelledby="modalDeleteLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-5 overflow-hidden">
+            <div class="bg-danger bg-opacity-10 py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                    <i class="bi bi-trash-fill text-danger" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <h4 class="fw-bold mb-3">¿Borrar Registro?</h4>
+                <p class="text-muted small mb-4">Vas a eliminar el acceso de <strong class="text-dark fs-6" id="d_FullName"></strong> de manera permanente.</p>
+
+                <form id="formDelete" action="@Url.Action("Delete", "Clientes")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="d_Id" />
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="submit" class="btn btn-danger rounded-pill flex-grow-1 py-2 fw-bold shadow-sm">Borrar</button>
+                        <button type="button" class="btn btn-light rounded-pill fw-bold text-secondary px-4 py-2" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // Check for TempData Success Message
+            @if(TempData["SuccessMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Operación Exitosa!',
+                    text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
+                    confirmButtonText: 'Genial',
+                    confirmButtonColor: '#28a745',
+                    customClass: {
+                        popup: 'rounded-5 shadow-lg border-0',
+                        confirmButton: 'rounded-pill px-4'
+                    }
+                });
+                </text>
+            }
+
+            // Búsqueda en tiempo real
+            const searchInput = document.getElementById('searchInput');
+            if(searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    let value = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#clientesTable .cliente-row');
+                    
+                    rows.forEach(row => {
+                        let text = row.querySelector('.nombre-cliente').textContent.toLowerCase();
+                        let tel = row.querySelector('.telf-cliente').textContent.toLowerCase();
+                        let gen = row.querySelector('.genero-filtro').textContent.toLowerCase();
+                        
+                        if(text.includes(value) || tel.includes(value) || gen.includes(value)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Bind data to Edit modal
+            const editButtons = document.querySelectorAll('.btn-edit');
+            editButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('e_Id').value = this.getAttribute('data-id');
+                    document.getElementById('e_Nombre').value = this.getAttribute('data-nombre');
+                    document.getElementById('e_Apellido').value = this.getAttribute('data-apellido');
+                    document.getElementById('e_Telefono').value = this.getAttribute('data-telefono');
+                    document.getElementById('e_Genero').value = this.getAttribute('data-genero');
+                });
+            });
+
+            // Bind data to Delete modal
+            const deleteButtons = document.querySelectorAll('.btn-delete');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('d_Id').value = this.getAttribute('data-id');
+                    document.getElementById('d_FullName').textContent = this.getAttribute('data-fullname');
+                });
+            });
+
+            // Validator SweetAlert Function
+            function validateClientForm(event) {
+                const form = event.target;
+                const nombre = form.querySelector('[name="Nombre"]').value.trim();
+                const apellido = form.querySelector('[name="Apellido"]').value.trim();
+                const btnSubmitObj = form.querySelector('button[type="submit"]');
+
+                // Obtain genero depending on generic Form logic
+                let selectElem = form.querySelector('select[name="Genero"]');
+                const genero = selectElem ? selectElem.value : '';
+                const telefono = form.querySelector('[name="Telefono"]').value.trim();
+
+                if(!nombre || !apellido || !genero) {
+                    event.preventDefault(); // Stop submission
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '¡Atención!',
+                        text: 'Faltan datos clave obligatorios. Revisa e intenta de nuevo.',
+                        confirmButtonText: 'CERRAR',
+                        confirmButtonColor: '#ff6b6b',
+                        background: '#ffffff',
+                        customClass: {
+                            popup: 'rounded-5 shadow-lg border-0',
+                            confirmButton: 'rounded-pill px-4'
+                        }
+                    });
+                    return false;
+                }
+
+                // Check if telefono has letters
+                if(telefono && isNaN(telefono.replace(/\+|-|\s/g, ''))) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Dato Inválido',
+                        text: 'El número de teléfono solo admite valores numéricos.',
+                        confirmButtonText: 'CORREGIR',
+                        confirmButtonColor: '#0d6efd',
+                        customClass: {
+                            popup: 'rounded-5 shadow-lg border-0',
+                            confirmButton: 'rounded-pill px-4'
+                        }
+                    });
+                    return false;
+                }
+
+                btnSubmitObj.disabled = true;
+                btnSubmitObj.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Procesando...';
+            }
+
+            // Attach validators
+            document.getElementById('formEdit').addEventListener('submit', validateClientForm);
+        });
+    </script>
+}

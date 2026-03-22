@@ -1,0 +1,102 @@
+@model IEnumerable<FactorFitGym.Web.Models.Venta>
+
+@{
+    ViewData["Title"] = "Historial de Tickets de Venta";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5 mt-3 px-2">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Tickets de Venta emitidos</h2>
+        <p class="text-muted mb-0">Listado histórico de las ventas procesadas en caja.</p>
+    </div>
+    
+    <div class="d-flex gap-3 align-items-center">
+        <!-- Búsqueda -->
+        <div class="input-group bg-white rounded-pill shadow-sm" style="width: 250px; overflow: hidden;">
+            <span class="input-group-text bg-white border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="searchVentas" class="form-control border-0 shadow-none ps-2" placeholder="Buscar ticket...">
+        </div>
+
+        <a href="@Url.Action("Create", "Ventas")" class="btn btn-brand rounded-pill px-5 shadow-sm fw-bold">
+            <i class="bi bi-cart-plus me-2"></i>Ir a Caja
+        </a>
+    </div>
+</div>
+
+<div class="px-2" style="padding-bottom: 2rem;">
+    <table class="table table-borderless align-middle w-100" id="ventasTable" style="border-collapse: separate; border-spacing: 0 15px;">
+        <thead class="text-secondary small text-uppercase fw-bold">
+            <tr>
+                <th class="ps-4 pb-2">Identificador</th>
+                <th class="pb-2">Fecha y Hora</th>
+                <th class="pb-2">Importe Final</th>
+                <th class="pb-2 text-center">Método de Pago</th>
+                <th class="pe-4 pb-2 text-center">Detalles</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr class="venta-row bg-white shadow-sm transition-all" style="border-radius: 20px;">
+                    <td class="ps-4 py-3" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-bold text-monospace" style="font-family: monospace;">@item.NumeroRecibo</span>
+                    </td>
+                    <td class="py-3 text-muted">
+                        <i class="bi bi-clock me-1"></i> @item.Fecha.ToString("dd MMM yyyy, HH:mm")
+                    </td>
+                    <td class="py-3">
+                        <h5 class="mb-0 fw-bold text-primary">@item.Total.ToString("C")</h5>
+                    </td>
+                    <td class="py-3 text-center">
+                        <span class="badge bg-light text-secondary rounded-pill border px-3">
+                            @if(item.MetodoPago == "Efectivo") { <i class="bi bi-cash-stack text-success me-1"></i> }
+                            else if(item.MetodoPago == "Tarjeta") { <i class="bi bi-credit-card-2-front text-primary me-1"></i> }
+                            else { <i class="bi bi-bank text-warning me-1"></i> }
+                            @item.MetodoPago
+                        </span>
+                    </td>
+                    <td class="py-3 text-center pe-4" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
+                        <a href="@Url.Action("Details", "Ventas", new { id = item.Id })" class="btn btn-sm btn-light border shadow-sm text-dark fw-bold px-3 rounded-pill transition-all">
+                            Ver Ticket
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 mt-4 bg-white rounded-5 shadow-sm">
+            <div class="mb-3">
+                <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="text-dark fw-bold">No hay ventas registradas aún</h5>
+            <p class="text-muted mb-0">Todas las transacciones procesadas en el Punto de Venta aparecerán aquí.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .transition-all { transition: all 0.3s ease; }
+    .venta-row:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Filtro Básico
+            const searchInput = document.getElementById('searchVentas');
+            if(searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    let text = this.value.toLowerCase();
+                    document.querySelectorAll('#ventasTable tbody tr.venta-row').forEach(row => {
+                        let recibo = row.querySelector('.text-monospace').textContent.toLowerCase();
+                        if(recibo.includes(text)) row.style.display = '';
+                        else row.style.display = 'none';
+                    });
+                });
+            }
+        });
+    </script>
+}

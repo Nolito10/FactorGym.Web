@@ -1,0 +1,277 @@
+@{
+    ViewData["Title"] = "Check-In de Asistencia";
+    Layout = User.IsInRole("Cliente") ? "~/Views/Shared/_LayoutKiosco.cshtml" : "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="col-12 col-md-8 col-lg-5 col-xl-4">
+
+        <!-- Pantalla de Resultado (Oculta inicialmente) -->
+        <div id="resultScreen" class="text-center d-none" style="animation: fadeIn 0.4s ease;">
+            <div class="card border-0 shadow-lg rounded-5 overflow-hidden" id="resultCard">
+                <div class="card-body p-5">
+                    <div id="resultIcon" class="mb-3" style="font-size: 5rem;"></div>
+                    <h2 id="resultNombre" class="fw-bolder text-dark mb-2"></h2>
+                    <p id="resultMensaje" class="fs-5 mb-2"></p>
+                    <p id="resultHora" class="text-muted small mb-4"></p>
+                    <div id="resultBadge" class="mb-4"></div>
+                    <button class="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow-sm" onclick="resetKiosk()">Siguiente Persona</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de PIN (Kiosco) -->
+        <div id="pinScreen">
+            <div class="card border-0 shadow-lg rounded-5 overflow-hidden">
+                <div class="bg-dark text-white p-4 text-center">
+                    <img src="~/img/Logo.png" alt="Factor Fit Gym" style="max-height: 55px; opacity: 0.9;" class="mb-2" />
+                    <h4 class="fw-bold mb-0">Registro de Asistencia</h4>
+                    <p class="text-white-50 small mb-0">Ingresa tu PIN de 4 dígitos</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-white">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Display del PIN -->
+                    <div class="text-center mb-4">
+                        <div class="d-flex justify-content-center gap-3" id="pinDisplay">
+                            <div class="pin-dot"></div>
+                            <div class="pin-dot"></div>
+                            <div class="pin-dot"></div>
+                            <div class="pin-dot"></div>
+                        </div>
+                        <p id="pinError" class="text-danger small mt-3 mb-0 d-none fw-bold"></p>
+                    </div>
+
+                    <!-- Teclado Numérico -->
+                    <div class="d-flex flex-column align-items-center gap-3 mt-4">
+                        <div class="d-flex gap-3">
+                            <button class="btn-numpad" onclick="addDigit('1')">1</button>
+                            <button class="btn-numpad" onclick="addDigit('2')">2</button>
+                            <button class="btn-numpad" onclick="addDigit('3')">3</button>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button class="btn-numpad" onclick="addDigit('4')">4</button>
+                            <button class="btn-numpad" onclick="addDigit('5')">5</button>
+                            <button class="btn-numpad" onclick="addDigit('6')">6</button>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button class="btn-numpad" onclick="addDigit('7')">7</button>
+                            <button class="btn-numpad" onclick="addDigit('8')">8</button>
+                            <button class="btn-numpad" onclick="addDigit('9')">9</button>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button class="btn-numpad btn-numpad-action text-danger" onclick="clearPin()"><i class="bi bi-x-lg"></i></button>
+                            <button class="btn-numpad" onclick="addDigit('0')">0</button>
+                            <button class="btn-numpad btn-numpad-action text-warning" onclick="deleteDigit()"><i class="bi bi-backspace"></i></button>
+                        </div>
+                    </div>
+                    <!-- Enlace de Olvido de PIN -->
+                    <div class="text-center mt-4">
+                        <button class="btn btn-link text-muted text-decoration-none small fw-bold" onclick="showRecuperarPin()">
+                            <i class="bi bi-question-circle me-1"></i>¿Olvidaste tu PIN?
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .pin-dot {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background-color: #dee2e6;
+        border: 2px solid #adb5bd;
+        transition: all 0.2s ease;
+    }
+    .pin-dot.filled {
+        background-color: var(--brand-blue, #0A58CA);
+        border-color: var(--brand-blue, #0A58CA);
+        transform: scale(1.15);
+        box-shadow: 0 0 10px rgba(10, 88, 202, 0.3);
+    }
+    .btn-numpad {
+        width: 75px; height: 75px;
+        border-radius: 50%;
+        border: 2px solid #e9ecef;
+        background: #f8f9fa;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #212529;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .btn-numpad:hover { background: #e2e6ea; transform: scale(1.05); }
+    .btn-numpad:active { background: #ced4da; transform: scale(0.95); }
+    .btn-numpad-action { background: #fff; font-size: 1.3rem; }
+
+    @@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+</style>
+
+@section Scripts {
+    <script>
+        let currentPin = '';
+        const dots = document.querySelectorAll('.pin-dot');
+        const pinError = document.getElementById('pinError');
+
+        function addDigit(d) {
+            if (currentPin.length >= 4) return;
+            currentPin += d;
+            updateDots();
+
+            if (currentPin.length === 4) {
+                submitPin();
+            }
+        }
+
+        function deleteDigit() {
+            currentPin = currentPin.slice(0, -1);
+            updateDots();
+            pinError.classList.add('d-none');
+        }
+
+        function clearPin() {
+            currentPin = '';
+            updateDots();
+            pinError.classList.add('d-none');
+        }
+
+        function updateDots() {
+            dots.forEach((dot, i) => {
+                if (i < currentPin.length) dot.classList.add('filled');
+                else dot.classList.remove('filled');
+            });
+        }
+
+        function submitPin() {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("CheckIn", "Asistencias")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ Pin: currentPin })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success && data.status === 'not_found') {
+                    pinError.textContent = data.message;
+                    pinError.classList.remove('d-none');
+                    currentPin = '';
+                    updateDots();
+                    return;
+                }
+                if (!data.success && data.status === 'error') {
+                    pinError.textContent = data.message;
+                    pinError.classList.remove('d-none');
+                    currentPin = '';
+                    updateDots();
+                    return;
+                }
+
+                showResult(data);
+            })
+            .catch(() => {
+                pinError.textContent = 'Error de conexión con el servidor.';
+                pinError.classList.remove('d-none');
+                currentPin = '';
+                updateDots();
+            });
+        }
+
+        function showResult(data) {
+            document.getElementById('pinScreen').classList.add('d-none');
+            const screen = document.getElementById('resultScreen');
+            screen.classList.remove('d-none');
+
+            const card = document.getElementById('resultCard');
+            const icon = document.getElementById('resultIcon');
+            const nombre = document.getElementById('resultNombre');
+            const mensaje = document.getElementById('resultMensaje');
+            const hora = document.getElementById('resultHora');
+            const badge = document.getElementById('resultBadge');
+
+            nombre.textContent = data.clienteNombre;
+            mensaje.textContent = data.mensajeEstado;
+
+            if (data.status === 'already_checked') {
+                icon.innerHTML = '<i class="bi bi-check-circle-fill text-info"></i>';
+                card.style.borderTop = '6px solid #0dcaf0';
+                badge.innerHTML = '<span class="badge bg-info bg-opacity-10 text-info rounded-pill px-4 py-2 fs-6 fw-bold">Ya registrado hoy</span>';
+                hora.textContent = '';
+            } else if (data.colorEstado === 'success') {
+                icon.innerHTML = '<i class="bi bi-shield-fill-check text-success"></i>';
+                card.style.borderTop = '6px solid #198754';
+                badge.innerHTML = '<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-4 py-2 fs-6 fw-bold">ACCESO PERMITIDO</span>';
+                hora.textContent = '🕐 Entrada: ' + data.horaEntrada;
+            } else if (data.colorEstado === 'warning') {
+                icon.innerHTML = '<i class="bi bi-pause-circle-fill text-warning"></i>';
+                card.style.borderTop = '6px solid #ffc107';
+                badge.innerHTML = '<span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-4 py-2 fs-6 fw-bold">MEMBRESÍA CONGELADA</span>';
+                hora.textContent = '';
+            } else {
+                icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
+                card.style.borderTop = '6px solid #dc3545';
+                badge.innerHTML = '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-4 py-2 fs-6 fw-bold">MEMBRESÍA VENCIDA / SIN MEMBRESÍA</span>';
+                hora.textContent = '';
+            }
+        }
+
+        function resetKiosk() {
+            currentPin = '';
+            updateDots();
+            pinError.classList.add('d-none');
+            document.getElementById('resultScreen').classList.add('d-none');
+            document.getElementById('pinScreen').classList.remove('d-none');
+        }
+
+        function showRecuperarPin() {
+            Swal.fire({
+                title: '¿Olvidaste tu PIN?',
+                text: 'Ingresa tu número de teléfono registrado para buscar tu PIN.',
+                input: 'text',
+                inputPlaceholder: 'Tu número de teléfono',
+                showCancelButton: true,
+                confirmButtonText: 'Buscar',
+                cancelButtonText: 'Cerrar',
+                confirmButtonColor: '#0A58CA',
+                customClass: { popup: 'rounded-5 shadow-lg', confirmButton: 'rounded-pill px-4', cancelButton: 'rounded-pill px-4' },
+                inputValidator: (value) => {
+                    if (!value) return 'Debes ingresar un teléfono.';
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    fetch('@Url.Action("RecuperarPin", "Asistencias")', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify({ Telefono: result.value })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: data.nombre,
+                                html: `<p class="mb-2">Tu PIN de acceso es:</p><h1 class="fw-bolder text-primary" style="letter-spacing: 15px; font-size: 3rem;">${data.pin}</h1>`,
+                                confirmButtonText: 'Entendido',
+                                confirmButtonColor: '#198754',
+                                customClass: { popup: 'rounded-5 shadow-lg', confirmButton: 'rounded-pill px-4' }
+                            });
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'No encontrado', text: data.message, confirmButtonColor: '#dc3545', customClass: { popup: 'rounded-5', confirmButton: 'rounded-pill px-4' } });
+                        }
+                    })
+                    .catch(() => Swal.fire('Error', 'No se pudo conectar con el servidor.', 'error'));
+                }
+            });
+        }
+    </script>
+}

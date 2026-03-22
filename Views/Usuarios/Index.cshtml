@@ -1,0 +1,162 @@
+@model IEnumerable<FactorFitGym.Web.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5 mt-3 px-2">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Adm. de Usuarios</h2>
+        <p class="text-muted mb-0">Controla quién tiene acceso a los módulos del sistema.</p>
+    </div>
+    <div>
+        <a href="@Url.Action("Create", "Usuarios")" class="btn btn-brand rounded-pill px-4 py-2 shadow-sm fw-bold">
+            <i class="bi bi-person-plus-fill me-2"></i> Nuevo Usuario
+        </a>
+    </div>
+</div>
+
+<div class="row px-2">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle" style="border-collapse: separate; border-spacing: 0 15px;">
+                <thead class="text-secondary small text-uppercase fw-bold">
+                    <tr>
+                        <th class="ps-4 pb-2">Usuario</th>
+                        <th class="pb-2">Nombre Completo</th>
+                        <th class="pb-2 text-center">Rol</th>
+                        <th class="pb-2 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="bg-white shadow-sm user-row" id="row-@item.Id" style="border-radius: 20px;">
+                            <td class="ps-4 py-3 fw-bold text-dark" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px;">
+                                @item.Username
+                            </td>
+                            <td class="py-3 text-muted">
+                                @item.Nombre @item.Apellido
+                            </td>
+                            <td class="py-3 text-center">
+                                @if(item.Rol == "Administrador")
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold"><i class="bi bi-shield-fill me-1"></i> Admin</span>
+                                }
+                                else if(item.Rol == "Empleado")
+                                {
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold"><i class="bi bi-person-badge-fill me-1"></i> Empleado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2 fw-bold"><i class="bi bi-display me-1"></i> Cliente (Kiosco)</span>
+                                }
+                            </td>
+                            <td class="py-3 text-center" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
+                                <a href="@Url.Action("Edit", "Usuarios", new { id = item.Id })" class="btn btn-light btn-sm rounded-circle shadow-sm me-2 action-btn text-primary" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm action-btn text-danger" title="Eliminar" onclick="confirmDelete(@item.Id, '@item.Username')">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 mt-4 bg-white rounded-5 shadow-sm">
+                <div class="mb-3">
+                    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="text-dark fw-bold">No hay usuarios registrados</h5>
+                <p class="text-muted">Da de alta tu primer usuario haciendo clic en "Nuevo Usuario".</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .user-row { transition: all 0.2s ease; }
+    .user-row:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
+    .action-btn { width: 35px; height: 35px; display: inline-flex; justify-content: center; align-items: center; transition: all 0.2s; }
+    .action-btn:hover { transform: scale(1.1); }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(TempData["SuccessMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: '@Html.Raw(TempData["SuccessMessage"])',
+                    confirmButtonText: 'Genial',
+                    confirmButtonColor: '#28a745',
+                    customClass: { popup: 'rounded-4 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                });
+                </text>
+            }
+        });
+
+        function confirmDelete(id, name) {
+            Swal.fire({
+                title: '¿Eliminar a ' + name + '?',
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'rounded-4 shadow-lg border-0', confirmButton: 'rounded-pill px-4', cancelButton: 'rounded-pill px-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const form = new FormData();
+                    form.append('id', id);
+                    if(token) form.append('__RequestVerificationToken', token.value);
+
+                    fetch(`@Url.Action("Delete", "Usuarios")/${id}`, {
+                        method: 'POST',
+                        body: form
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            const row = document.getElementById('row-' + id);
+                            row.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateY(20px)';
+                            setTimeout(() => row.remove(), 400);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Eliminado',
+                                text: data.message,
+                                confirmButtonColor: '#28a745',
+                                customClass: { popup: 'rounded-4', confirmButton: 'rounded-pill px-4' }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'No se pudo eliminar',
+                                text: data.message,
+                                confirmButtonColor: '#0d6efd',
+                                customClass: { popup: 'rounded-4', confirmButton: 'rounded-pill px-4' }
+                            });
+                        }
+                    });
+                }
+            })
+        }
+    </script>
+}
+
+@Html.AntiForgeryToken()

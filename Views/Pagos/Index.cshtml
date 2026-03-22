@@ -1,0 +1,162 @@
+@model IEnumerable<FactorFitGym.Web.Models.Pago>
+
+@{
+    ViewData["Title"] = "Directorio de Pagos";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5 mt-3 px-2">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Registro Financeiro (Pagos)</h2>
+        <p class="text-muted mb-0">Control de ingresos, mensualidades y emisión de recibos.</p>
+    </div>
+    <div class="d-flex gap-3 align-items-center">
+        <!-- Barra de búsqueda -->
+        <div class="input-group bg-white rounded-pill shadow-sm" style="width: 250px; overflow: hidden;">
+            <span class="input-group-text bg-white border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="busquedaPagos" class="form-control border-0 shadow-none ps-2" placeholder="Nro de Recibo...">
+        </div>
+
+        @if((int)(ViewBag.MembresiasConPendiente ?? 0) > 0)
+        {
+            <a href="@Url.Action("Create", "Pagos")" class="btn btn-brand rounded-pill px-4 shadow-sm fw-bold">
+                <i class="bi bi-plus-circle-fill me-2 fs-5 align-middle"></i>Registrar Ingreso
+            </a>
+        }
+        else
+        {
+            <button type="button" class="btn btn-secondary rounded-pill px-4 shadow-sm fw-bold opacity-75" id="btnRegistrarIngreso">
+                <i class="bi bi-plus-circle-fill me-2 fs-5 align-middle"></i>Registrar Ingreso
+            </button>
+        }
+    </div>
+</div>
+
+<div class="px-2" style="padding-bottom: 2rem; overflow-x: hidden;">
+    <table class="table table-borderless align-middle w-100" id="tablaPagos" style="border-collapse: separate; border-spacing: 0 15px;">
+        <thead class="text-secondary small text-uppercase fw-bold">
+            <tr>
+                <th class="ps-4 pb-2">Recibo / Cliente</th>
+                <th class="pb-2 text-center">Fecha y Método</th>
+                <th class="pb-2 text-center">Servicio Pagado</th>
+                <th class="pb-2 text-end">Monto Total</th>
+                <th class="text-center pe-4 pb-2">Comprobante</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr class="pago-row bg-white shadow-sm transition-all" style="border-radius: 20px;">
+                    <td class="ps-4 py-3" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px; width: 30%;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white me-3 shadow-sm" style="width: 45px; height: 45px; background-color: #2eac68;">
+                                <i class="bi bi-currency-dollar fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">Nro. <span class="text-brand recibo-filtro">@item.NumeroRecibo</span></h6>
+                                <small class="text-muted cliente-filtro">@item.Cliente.Nombre @item.Cliente.Apellido</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 text-center" style="width: 20%;">
+                        <div class="text-muted small">
+                            <i class="bi bi-calendar me-1"></i> @item.FechaPago.ToString("dd MMM yyyy, HH:mm") <br/>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill d-inline-block px-3 mt-1">
+                                <i class="bi bi-credit-card-2-front me-1"></i> @item.MetodoPago
+                            </span>
+                        </div>
+                    </td>
+                    <td class="py-3 text-center" style="width: 20%;">
+                        <div class="text-secondary fw-medium small">
+                            @(string.IsNullOrEmpty(item.TipoServicio) ? item.Membresia.Tipo : item.TipoServicio)
+                        </div>
+                    </td>
+                    <td class="py-3 text-end" style="width: 15%;">
+                        <span class="fw-bold fs-5 text-dark">
+                            @item.Monto.ToString("C")
+                        </span>
+                    </td>
+                    <td class="text-center pe-4 py-3" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 15%;">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="@Url.Action("GenerarReciboPDF", "Pagos", new { id = item.Id })" target="_blank" class="btn btn-sm btn-light bg-opacity-50 border-0 text-danger fw-bold px-3 rounded-pill d-flex align-items-center shadow-sm" title="Descargar / Imprimir Recibo">
+                                <i class="bi bi-file-earmark-pdf-fill fs-5 me-1"></i> PDF
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 mt-4 bg-white rounded-5 shadow-sm">
+            <i class="bi bi-piggy-bank text-muted" style="font-size: 3rem;"></i>
+            <h5 class="text-muted mt-3">No hay pagos registrados aún en el sistema.</h5>
+        </div>
+    }
+
+    @await Html.PartialAsync("_Pagination")
+</div>
+
+<style>
+    .transition-all { transition: all 0.3s ease; }
+    .pago-row:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(TempData["SuccessMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Pago Procesado!',
+                    text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
+                    confirmButtonText: 'Genial',
+                    confirmButtonColor: '#0A58CA',
+                    customClass: {
+                        popup: 'rounded-5 shadow-lg border-0',
+                        confirmButton: 'rounded-pill px-4'
+                    }
+                });
+                </text>
+            }
+
+            // Btn Registrar Ingreso deshabilitado
+            const btnIngreso = document.getElementById('btnRegistrarIngreso');
+            if(btnIngreso) {
+                btnIngreso.addEventListener('click', function() {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Sin pagos pendientes',
+                        text: 'No hay membersías activas con pago pendiente en este momento. Todos los abonados al día.',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#0A58CA',
+                        customClass: { popup: 'rounded-5 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                    });
+                });
+            }
+
+            // Búsqueda en tiempo real
+            const searchInput = document.getElementById('busquedaPagos');
+            if(searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    let value = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#tablaPagos .pago-row');
+                    
+                    rows.forEach(row => {
+                        let recibo = row.querySelector('.recibo-filtro').textContent.toLowerCase();
+                        let cliente = row.querySelector('.cliente-filtro').textContent.toLowerCase();
+                        
+                        if(recibo.includes(value) || cliente.includes(value)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}

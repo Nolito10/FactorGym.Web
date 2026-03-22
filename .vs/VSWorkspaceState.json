@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Controllers",
+    "\\Views",
+    "\\Views\\Home",
+    "\\Views\\Shared",
+    "\\wwwroot",
+    "\\wwwroot\\css",
+    "\\wwwroot\\js",
+    "\\wwwroot\\lib",
+    "\\wwwroot\\lib\\bootstrap-icons"
+  ],
+  "SelectedNode": "\\Controllers\\AccountController.cs",
+  "PreviewInSolutionExplorer": false
+}

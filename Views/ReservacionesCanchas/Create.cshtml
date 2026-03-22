@@ -1,0 +1,238 @@
+@model FactorFitGym.Web.Models.ReservacionCancha
+
+@{
+    ViewData["Title"] = "Nueva Reservación";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-dark mb-0">Agendar Espacio (Cancha Multiusos)</h2>
+</div>
+
+<div class="row w-100 justify-content-center m-0">
+    <div class="col-md-9 col-lg-8 px-0">
+        <div class="card border-0 shadow-lg" style="border-radius: 25px; overflow: hidden;">
+            <div class="bg-brand-light py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-calendar-plus-fill text-brand" style="font-size: 1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Bloquear Horario</h5>
+                <p class="text-muted small mt-2 mb-0 px-4">Reserva la cancha para uso exclusivo o eventos.</p>
+            </div>
+            
+            <div class="card-body p-5 bg-white">
+                <form id="formCreate" action="@Url.Action("Create", "ReservacionesCanchas")" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Nombre del Cliente / Responsable</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-light">
+                                <span class="input-group-text bg-transparent border-0 ps-4 pe-2">
+                                    <i class="bi bi-person-fill text-primary"></i>
+                                </span>
+                                <input asp-for="NombreCliente" type="text" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark" placeholder="Escribe el nombre del responsable..." required style="font-size: 1rem;">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Tipo de Actividad</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-light">
+                                <span class="input-group-text bg-transparent border-0 ps-4 pe-2">
+                                    <i class="bi bi-activity text-primary"></i>
+                                </span>
+                                <select asp-for="TipoUso" id="TipoUso" class="form-select form-select-lg bg-transparent border-0 fw-bold px-2 text-dark" required style="cursor: pointer; font-size: 1rem;">
+                                    <option value="Básquetbol">Básquetbol <i class="bi bi-dribbble"></i></option>
+                                    <option value="Voleibol">Voleibol</option>
+                                    <option value="Fútbol">Fútbol Sala</option>
+                                    <option value="Evento">Evento / Exclusivo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Monto del Pago Reservación ($)</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-success border-opacity-25">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
+                                    <i class="bi bi-cash-stack text-success"></i>
+                                </span>
+                                <input asp-for="MontoTotal" id="MontoTotal" type="number" step="0.01" min="0" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark" placeholder="Ej. 50.00" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Fecha y Hora de Inicio</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-primary border-opacity-25">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
+                                    <i class="bi bi-clock-fill text-primary"></i>
+                                </span>
+                                <input asp-for="FechaHoraInicio" id="fechaInicio" type="datetime-local" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6" id="fechaFinContainer">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Fecha y Hora de Fin</label>
+                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-danger border-opacity-25">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
+                                    <i class="bi bi-clock-fill text-danger"></i>
+                                </span>
+                                <input asp-for="FechaHoraFin" id="fechaFin" type="datetime-local" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-5 pt-4 text-center">
+                        <button type="submit" id="btnSubmit" class="btn btn-brand btn-lg rounded-pill px-5 py-3 fw-bold shadow-sm d-inline-flex align-items-center transition-all justify-content-center">
+                            Confirmar Reservación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Si hay un error de colisión de servidor, lo mostramos con SweetAlert
+            @if(TempData["ErrorMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No se pudo reservar',
+                    text: @Html.Raw(Json.Serialize(TempData["ErrorMessage"])),
+                    confirmButtonText: 'Corregir',
+                    confirmButtonColor: '#ff4d4d',
+                    customClass: { popup: 'rounded-5 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                });
+                </text>
+            }
+
+            // Defaults: Hoy, a la próxima hora en punto. y dura 1 hora.
+            const fechaIn = document.getElementById('fechaInicio');
+            const fechaFi = document.getElementById('fechaFin');
+            
+            if(!fechaIn.value) {
+                let now = new Date();
+                now.setHours(now.getHours() + 1);
+                now.setMinutes(0);
+                now.setSeconds(0);
+                // Adjust to local ISO string format suitable for datetime-local
+                let tzoffset = now.getTimezoneOffset() * 60000;
+                let localISOTime = (new Date(now - tzoffset)).toISOString().slice(0, 16);
+                fechaIn.value = localISOTime;
+
+                let end = new Date(now);
+                end.setHours(end.getHours() + 1);
+                let endLocalISOTime = (new Date(end - tzoffset)).toISOString().slice(0, 16);
+                fechaFi.value = endLocalISOTime;
+            }
+
+            // Auto-advance Fin when Inicio changes
+            fechaIn.addEventListener('change', function() {
+                if(this.value) {
+                    let start = new Date(this.value);
+                    start.setHours(start.getHours() + 1);
+                    let tzoffset = start.getTimezoneOffset() * 60000;
+                    fechaFi.value = (new Date(start - tzoffset)).toISOString().slice(0, 16);
+                }
+            });
+
+            const formCreate = document.getElementById('formCreate');
+            formCreate.addEventListener('submit', function (e) {
+                const btnSubmit = document.getElementById('btnSubmit');
+
+                let fIniStr = document.getElementById('fechaInicio').value;
+                let fFinStr = document.getElementById('fechaFin').value;
+                let fIni = new Date(fIniStr);
+                let fFin = new Date(fFinStr);
+                let now = new Date();
+
+                // If not an Event, ensure End Time exists
+                if (selectUso.value !== 'Evento' && (!fIniStr || !fFinStr)) {
+                    e.preventDefault();
+                    Swal.fire({icon: 'warning',title: 'Faltan Datos',text: 'Debes especificar la fecha y hora de inicio y fin para los deportes.',confirmButtonColor: '#ff6b6b', customClass: { actions: 'justify-content-center' }});
+                    return false;
+                }
+
+                // If not an Event, Validate start < end
+                if (selectUso.value !== 'Evento' && fIni >= fFin) {
+                    e.preventDefault();
+                    Swal.fire({icon: 'warning',title: 'Horario Inválido',text: 'La hora de inicio debe ser estrictamente anterior a la hora de fin.',confirmButtonColor: '#ff6b6b', customClass: { actions: 'justify-content-center' }});
+                    return false;
+                }
+                
+                if (fIni < now) {
+                    e.preventDefault();
+                    Swal.fire({icon: 'warning',title: 'Viaje en el tiempo prohibido',text: 'No puedes agendar una reservación en el pasado.',confirmButtonColor: '#ff6b6b', customClass: { actions: 'justify-content-center' }});
+                    return false;
+                }
+
+                // Unlock MontoTotal right before submit just in case it's readonly so it posts properly
+                document.getElementById('MontoTotal').readOnly = false;
+
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Validando...';
+            });
+            
+            // Lógica de Precios Fijos (por hora) vs Eventos Editables
+            const selectUso = document.getElementById('TipoUso');
+            const inputMonto = document.getElementById('MontoTotal');
+            const containerFin = document.getElementById('fechaFinContainer');
+            
+            function calculatePrice() {
+                if(selectUso.value === 'Evento') return; // Do not overwrite Evento price automatically
+                
+                let fIniStr = document.getElementById('fechaInicio').value;
+                let fFinStr = document.getElementById('fechaFin').value;
+                
+                if(fIniStr && fFinStr) {
+                    let fIni = new Date(fIniStr);
+                    let fFin = new Date(fFinStr);
+                    if(fFin > fIni) {
+                        // Calculate diff in hours
+                        let diffMs = fFin - fIni;
+                        let diffHrs = diffMs / (1000 * 60 * 60);
+                        let total = Math.max(1, diffHrs) * 20.00; // $20.00 base per hour
+                        inputMonto.value = total.toFixed(2);
+                    } else {
+                        inputMonto.value = '20.00'; // Fallback
+                    }
+                }
+            }
+
+            function updateUIState() {
+                if(selectUso.value === 'Evento') {
+                    // Editable, No Mandatory End Date
+                    containerFin.style.display = 'none';
+                    document.getElementById('fechaFin').required = false;
+                    document.getElementById('fechaFin').value = ''; // clear it
+                    inputMonto.readOnly = false;
+                    inputMonto.value = '';
+                    inputMonto.placeholder = "Ingrese precio acordado...";
+                    inputMonto.classList.add('bg-white');
+                    inputMonto.classList.remove('text-muted');
+                } else {
+                    // Precio Calculado (Lectura), End Date required
+                    containerFin.style.display = 'block';
+                    document.getElementById('fechaFin').required = true;
+                    inputMonto.readOnly = true;
+                    inputMonto.classList.remove('bg-white');
+                    inputMonto.classList.add('text-muted');
+                    calculatePrice();
+                }
+            }
+            
+            // Listeners
+            selectUso.addEventListener('change', updateUIState);
+            document.getElementById('fechaInicio').addEventListener('change', calculatePrice);
+            document.getElementById('fechaFin').addEventListener('change', calculatePrice);
+            
+            updateUIState(); // Init
+        });
+    </script>
+}

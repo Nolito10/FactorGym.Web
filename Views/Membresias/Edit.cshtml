@@ -1,0 +1,119 @@
+@model FactorFitGym.Web.Models.Membresia
+
+@{
+    ViewData["Title"] = "Renovar / Editar Membresía";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center mt-4" style="min-height: 75vh;">
+    <div class="col-12 col-md-10 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-5 overflow-hidden">
+            <div class="bg-light py-4 text-center border-bottom">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-pencil-square text-secondary" style="font-size: 1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Renovar / Modificar Membresía</h5>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form id="formEditMem" action="@Url.Action("Edit", "Membresias", new { id = Model.Id })" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 mb-3">
+                            <label asp-for="ClienteId" class="form-label fw-bold small ms-2" style="color: #6c757d;">Cliente Asignado <span class="text-danger">*</span></label>
+                            <select asp-for="ClienteId" class="form-select rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" asp-items="ViewBag.ClienteId">
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Tipo" class="form-label fw-bold small ms-2" style="color: #6c757d;">Servicio General <span class="text-danger">*</span></label>
+                            <input asp-for="Tipo" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="TipoPlan" class="form-label fw-bold small ms-2" style="color: #6c757d;">Tipo Específico <span class="text-danger">*</span></label>
+                            <input asp-for="TipoPlan" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Frecuencia" class="form-label fw-bold small ms-2" style="color: #6c757d;">Frecuencia <span class="text-danger">*</span></label>
+                            <input asp-for="Frecuencia" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Costo" class="form-label fw-bold small ms-2" style="color: #6c757d;">Costo ($) <span class="text-danger">*</span></label>
+                            <input asp-for="Costo" type="number" step="0.01" class="form-control rounded-pill border-0 px-4 fw-bold" style="background-color: #f4f6f9; height: 42px; font-size: 1.05rem; text-align: center; color: #0A58CA;" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="FechaInicio" class="form-label fw-bold small ms-2" style="color: #6c757d;">Fecha de Inicio <span class="text-danger">*</span></label>
+                            <input asp-for="FechaInicio" type="date" class="form-control rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="FechaFin" class="form-label fw-bold small ms-2" style="color: #6c757d;">Fecha de Vencimiento <span class="text-danger">*</span></label>
+                            <input asp-for="FechaFin" type="date" class="form-control rounded-pill border-0 px-4 py-2 fw-bold text-danger" style="background-color: #fee2e2; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div class="col-12 mt-4 text-center">
+                            <label asp-for="Estado" class="form-label fw-bold small ms-2" style="color: #6c757d;">Estado de la Membresía <span class="text-danger">*</span></label>
+                            <div class="d-flex justify-content-center gap-3">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input mt-2" type="radio" asp-for="Estado" value="Activa" id="estadoActiva" style="transform: scale(1.3);">
+                                    <label class="form-check-label ms-1 badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold" for="estadoActiva">ACTIVA</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input mt-2" type="radio" asp-for="Estado" value="Vencida" id="estadoVencida" style="transform: scale(1.3);">
+                                    <label class="form-check-label ms-1 badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-bold" for="estadoVencida">VENCIDA</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input mt-2" type="radio" asp-for="Estado" value="Congelada" id="estadoCongelada" style="transform: scale(1.3);">
+                                    <label class="form-check-label ms-1 badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2 fw-bold" for="estadoCongelada">CONGELADA</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 d-flex gap-3 justify-content-center">
+                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm text-white" style="height: 45px;">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('formEditMem').addEventListener('submit', function(event) {
+                const form = event.target;
+                const cliente = form.querySelector('[name="ClienteId"]').value;
+                const tipo = form.querySelector('[name="Tipo"]').value;
+                const costo = form.querySelector('[name="Costo"]').value;
+
+                if(!cliente || !tipo || !costo) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '¡Datos Faltantes!',
+                        text: 'Asegúrate de llenar todos los campos requeridos.',
+                        confirmButtonText: 'REVISAR',
+                        confirmButtonColor: '#ff6b6b',
+                        customClass: {
+                            popup: 'rounded-4 shadow-lg border-0',
+                            confirmButton: 'rounded-pill px-4'
+                        }
+                    });
+                    return false;
+                }
+                
+                const btnSubmitObj = form.querySelector('button[type="submit"]');
+                btnSubmitObj.disabled = true;
+                btnSubmitObj.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
+            });
+        });
+    </script>
+}

@@ -1,0 +1,135 @@
+@model FactorFitGym.Web.Models.Cliente
+
+@{
+    ViewData["Title"] = "Nuevo Registro";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center mt-4" style="min-height: 75vh;">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-5 overflow-hidden">
+            <div class="bg-brand-light py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-person-badge-fill text-brand" style="font-size: 1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Formulario de Registro</h5>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form id="formCreate" action="@Url.Action("Create", "Clientes")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <div>
+                            <label class="form-label fw-bold small ms-2" style="color: #6c757d;">Nombre Completo <span class="text-danger">*</span></label>
+                            <input asp-for="Nombre" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div>
+                            <label class="form-label fw-bold small ms-2" style="color: #6c757d;">Apellido <span class="text-danger">*</span></label>
+                            <input asp-for="Apellido" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div>
+                            <label class="form-label fw-bold small ms-2" style="color: #6c757d;">Teléfono / Celular</label>
+                            <input asp-for="Telefono" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" />
+                        </div>
+
+                        <div>
+                            <label class="form-label fw-bold small ms-2" style="color: #6c757d;">Género <span class="text-danger">*</span></label>
+                            <select asp-for="Genero" class="form-select rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;">
+                                <option value="" selected disabled>Seleccionar...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label fw-bold small ms-2" style="color: #6c757d;">PIN de Acceso (4 dígitos)</label>
+                            <input asp-for="PinAcceso" type="text" maxlength="4" class="form-control rounded-pill border-0 px-4 fw-bold" style="background-color: #f4f6f9; height: 42px; font-size: 1.1rem; text-align: center; letter-spacing: 10px;" />
+                            <small class="text-muted ms-2" style="font-size: 0.75rem;">Este PIN servirá para el check-in en el kiosco de asistencia.</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm" style="height: 45px;">Registrar Cliente</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            @if(TempData["SuccessMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
+                    confirmButtonText: 'Genial',
+                    confirmButtonColor: '#28a745',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg border-0',
+                        confirmButton: 'rounded-pill px-4'
+                    }
+                });
+                </text>
+            }
+
+            function validateClientForm(event) {
+                const form = event.target;
+                const nombre = form.querySelector('[name="Nombre"]').value.trim();
+                const apellido = form.querySelector('[name="Apellido"]').value.trim();
+                const btnSubmitObj = form.querySelector('button[type="submit"]');
+
+                let selectElem = form.querySelector('select[name="Genero"]');
+                const genero = selectElem ? selectElem.value : '';
+                const telefono = form.querySelector('[name="Telefono"]').value.trim();
+
+                if(!nombre || !apellido || !genero) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '¡Atención!',
+                        text: 'Faltan datos clave obligatorios. Revisa e intenta de nuevo.',
+                        confirmButtonText: 'CERRAR',
+                        confirmButtonColor: '#ff6b6b',
+                        customClass: {
+                            popup: 'rounded-4 shadow-lg border-0',
+                            confirmButton: 'rounded-pill px-4'
+                        }
+                    });
+                    return false;
+                }
+
+                if(telefono && isNaN(telefono.replace(/\+|-|\s/g, ''))) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Dato Inválido',
+                        text: 'El número de teléfono solo admite valores numéricos.',
+                        confirmButtonText: 'CORREGIR',
+                        confirmButtonColor: '#0d6efd',
+                        customClass: {
+                            popup: 'rounded-4 shadow-lg border-0',
+                            confirmButton: 'rounded-pill px-4'
+                        }
+                    });
+                    return false;
+                }
+
+                btnSubmitObj.disabled = true;
+                btnSubmitObj.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
+            }
+
+            document.getElementById('formCreate').addEventListener('submit', validateClientForm);
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

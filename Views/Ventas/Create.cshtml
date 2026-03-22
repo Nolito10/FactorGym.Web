@@ -1,0 +1,318 @@
+@model FactorFitGym.Web.Models.Venta
+@using FactorFitGym.Web.Models
+
+@{
+    ViewData["Title"] = "Punto de Venta";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    var productos = ViewBag.Productos as List<Producto>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3 px-2">
+    <div>
+        <h2 class="fw-bold text-dark mb-1"><i class="bi bi-cart-plus me-2 text-brand"></i>Punto de Venta</h2>
+        <p class="text-muted mb-0">Atención rápida y registro de compras.</p>
+    </div>
+</div>
+
+<div class="row px-2">
+    <!-- Columna Izquierda: Catálogo de Productos -->
+    <div class="col-lg-7 col-xl-8 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">Catálogo de Artículos</h5>
+                <div class="input-group bg-light rounded-pill border" style="width: 250px;">
+                    <span class="input-group-text bg-transparent border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchArticulos" class="form-control bg-transparent border-0 shadow-none ps-2" placeholder="Buscar producto...">
+                </div>
+            </div>
+            <div class="card-body px-4 pb-4 pt-2">
+                <div class="row g-3" id="productosCatalog">
+                    @if (productos != null && productos.Any())
+                    {
+                        foreach (var prod in productos)
+                        {
+                            <div class="col-6 col-md-4 col-xl-3 producto-item">
+                                <div class="card border border-2 border-light shadow-sm h-100 product-selector" 
+                                     data-id="@prod.Id" 
+                                     data-nombre="@prod.Nombre" 
+                                     data-precio="@prod.Precio.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" 
+                                     data-stock="@prod.Stock"
+                                     style="cursor: pointer; border-radius: 15px; transition: all 0.2s ease;">
+                                    <div class="card-body text-center p-3 d-flex flex-column justify-content-between">
+                                        <div class="mb-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-brand-light mx-auto mb-2" style="width: 45px; height: 45px;">
+                                                <i class="bi bi-bag-heart-fill text-brand fs-5"></i>
+                                            </div>
+                                            <h6 class="fw-bold text-dark mb-1 prod-nombre" style="font-size: 0.9rem;">@prod.Nombre</h6>
+                                            <small class="text-muted d-block pb-2">@prod.Categoria</small>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-primary fs-5 mb-1">@prod.Precio.ToString("C")</div>
+                                            <small class="badge bg-light text-secondary rounded-pill border w-100">Disp: @prod.Stock</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12 text-center py-5">
+                            <i class="bi bi-box2-heart text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="text-muted">No hay productos disponibles con stock en este momento.</h6>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Ticket / Carrito -->
+    <div class="col-lg-5 col-xl-4">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100 bg-white" style="position: sticky; top: 20px;">
+            <div class="bg-dark text-white p-3 text-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Ticket de Compra</h5>
+            </div>
+            
+            <div class="card-body p-0 d-flex flex-column h-100">
+                <!-- Zona de Productos Agregados -->
+                <div class="flex-grow-1 overflow-auto bg-light" id="cartContainer" style="min-height: 250px; max-height: 350px;">
+                    <table class="table table-borderless table-hover mb-0 align-middle w-100" id="cartTable">
+                        <thead class="sticky-top bg-white shadow-sm" style="font-size: 0.8rem;">
+                            <tr>
+                                <th class="ps-3 py-2 text-muted fw-bold">Cant</th>
+                                <th class="py-2 text-muted fw-bold">Artículo</th>
+                                <th class="pe-3 py-2 text-end text-muted fw-bold">Subt</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItems" class="bg-white">
+                            <tr id="emptyCartRow">
+                                <td colspan="4" class="text-center py-5 text-muted small">
+                                    El ticket está vacío. Haz clic en los productos para agregarlos.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Formularios Finales y Total -->
+                <div class="p-4 bg-white border-top border-light shadow-sm z-1">
+                    <form id="formNuevaVenta">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted mb-1">Método de Pago <span class="text-danger">*</span></label>
+                            <select id="metodoPago" class="form-select rounded-pill bg-light border-0" required style="font-size: 0.9rem;">
+                                <option value="Efectivo" selected>Efectivo</option>
+                                <option value="Tarjeta">Tarjeta Débito/Crédito</option>
+                                <option value="Transferencia">Transferencia Bancaria</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-end my-4 px-2">
+                            <h5 class="text-muted fw-bold mb-0">TOTAL</h5>
+                            <h2 class="text-dark fw-bolder mb-0" id="cartTotalDisplay">$0.00</h2>
+                        </div>
+
+                        <div class="text-center mt-2">
+                            <button type="button" id="btnProcesarCobro" class="btn btn-brand btn-lg rounded-pill px-5 py-3 fw-bold shadow-sm w-100 d-inline-flex justify-content-center align-items-center" disabled>
+                                Cobrar Ticket
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-selector:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(10, 88, 202, 0.15) !important;
+        border-color: var(--brand-blue) !important;
+    }
+    #cartItems tr:hover { background-color: #f8f9fa; }
+    /* Scrollbar minimalista para el carrito */
+    #cartContainer::-webkit-scrollbar { width: 6px; }
+    #cartContainer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            let cart = []; // Array of objects: { id, nombre, precio, maxStock, qty }
+
+            // Búsqueda Visual
+            const searchInput = document.getElementById('searchArticulos');
+            if(searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    let text = this.value.toLowerCase();
+                    document.querySelectorAll('.producto-item').forEach(el => {
+                        let name = el.querySelector('.prod-nombre').textContent.toLowerCase();
+                        if(name.includes(text)) el.style.display = '';
+                        else el.style.display = 'none';
+                    });
+                });
+            }
+
+            // Click en Producto
+            document.querySelectorAll('.product-selector').forEach(card => {
+                card.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const name = this.dataset.nombre;
+                    const price = parseFloat(this.dataset.precio);
+                    const stock = parseInt(this.dataset.stock);
+
+                    let existing = cart.find(x => x.id === id);
+                    if(existing) {
+                        if(existing.qty < stock) {
+                            existing.qty++;
+                            renderCart();
+                        } else {
+                            // Alerta de límite de stock
+                            Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, icon: 'warning', title: `Solo hay ${stock} en stock.` });
+                        }
+                    } else {
+                        cart.push({ id: id, nombre: name, precio: price, maxStock: stock, qty: 1 });
+                        renderCart();
+                    }
+                });
+            });
+
+            const cartBody = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotalDisplay');
+            const btnCobrar = document.getElementById('btnProcesarCobro');
+
+            function renderCart() {
+                if(cart.length === 0) {
+                    cartBody.innerHTML = `<tr id="emptyCartRow"><td colspan="4" class="text-center py-5 text-muted small">El ticket está vacío.</td></tr>`;
+                    cartTotal.textContent = "$0.00";
+                    btnCobrar.disabled = true;
+                    return;
+                }
+
+                btnCobrar.disabled = false;
+                cartBody.innerHTML = '';
+                let grandTotal = 0;
+
+                cart.forEach((item, index) => {
+                    let subtotal = item.precio * item.qty;
+                    grandTotal += subtotal;
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="ps-3 py-3 align-middle" style="width: 100px;">
+                            <div class="input-group input-group-sm rounded bg-white border">
+                                <button class="btn btn-light px-2 py-0 border-end fw-bold text-dark btn-minus" data-idx="${index}">-</button>
+                                <input type="text" class="form-control text-center bg-white px-0 border-0 fw-bold" value="${item.qty}" readonly>
+                                <button class="btn btn-light px-2 py-0 border-start fw-bold text-dark btn-plus" data-idx="${index}">+</button>
+                            </div>
+                        </td>
+                        <td class="py-3 align-middle">
+                            <p class="mb-0 small fw-bold text-dark text-truncate" style="max-width: 140px;">${item.nombre}</p>
+                            <small class="text-muted" style="font-size: 0.75rem;">$${item.precio.toFixed(2)} c/u</small>
+                        </td>
+                        <td class="pe-3 py-3 align-middle text-end fw-bold text-primary">
+                            $${subtotal.toFixed(2)}
+                        </td>
+                        <td class="pe-2 py-3 align-middle text-center">
+                            <button class="btn btn-sm btn-link text-danger p-0 shadow-none btn-remove" data-idx="${index}"><i class="bi bi-x-circle-fill fs-5"></i></button>
+                        </td>
+                    `;
+                    cartBody.appendChild(tr);
+                });
+
+                cartTotal.textContent = "$" + grandTotal.toFixed(2);
+                attachCartListeners();
+            }
+
+            function attachCartListeners() {
+                document.querySelectorAll('.btn-minus').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        let idx = parseInt(this.dataset.idx);
+                        if(cart[idx].qty > 1) { cart[idx].qty--; renderCart(); }
+                        else { cart.splice(idx, 1); renderCart(); }
+                    });
+                });
+                document.querySelectorAll('.btn-plus').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        let idx = parseInt(this.dataset.idx);
+                        if(cart[idx].qty < cart[idx].maxStock) { cart[idx].qty++; renderCart(); }
+                        else { Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, icon: 'warning', title: `Límite de stock.` }); }
+                    });
+                });
+                document.querySelectorAll('.btn-remove').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        let idx = parseInt(this.dataset.idx);
+                        cart.splice(idx, 1);
+                        renderCart();
+                    });
+                });
+            }
+
+            // Procesar POST Cobro
+            btnCobrar.addEventListener('click', function() {
+                const metodoPago = document.getElementById('metodoPago').value;
+                const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                if(!metodoPago) {
+                    Swal.fire('Atención', 'Selecciona el método de pago', 'warning'); return;
+                }
+
+                // Mapper array a DTO
+                const articulos = cart.map(item => {
+                    return { ProductoId: item.id, Cantidad: item.qty };
+                });
+
+                const payload = {
+                    ClienteId: null,
+                    MetodoPago: metodoPago,
+                    Articulos: articulos
+                };
+
+                btnCobrar.disabled = true;
+                btnCobrar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cobrando...';
+
+                fetch('@Url.Action("ProcesarVenta", "Ventas")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiforgeryToken
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Venta Aprobada!',
+                            text: data.message,
+                            confirmButtonText: 'Imprimir Ticket / Ver Detalles',
+                            confirmButtonColor: '#28a745',
+                            customClass: { popup: 'rounded-5' }
+                        }).then(() => {
+                            window.location.href = '@Url.Action("Index", "Ventas")';
+                        });
+                    } else {
+                        Swal.fire('Error en el cobro', data.message, 'error');
+                        btnCobrar.disabled = false;
+                        btnCobrar.innerHTML = 'Cobrar Ticket';
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Error de red', 'No se pudo comunicar con el servidor.', 'error');
+                    btnCobrar.disabled = false;
+                    btnCobrar.innerHTML = 'Cobrar Ticket';
+                });
+            });
+
+        });
+    </script>
+}

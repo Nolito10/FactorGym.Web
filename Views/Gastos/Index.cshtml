@@ -1,0 +1,147 @@
+@model IEnumerable<FactorFitGym.Web.Models.Gasto>
+
+@{
+    ViewData["Title"] = "Historial de Egresos";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5 mt-3 px-2">
+    <div>
+        <h2 class="fw-bold text-dark mb-1"><i class="bi bi-graph-down-arrow text-danger me-2"></i>Egresos y Gastos</h2>
+        <p class="text-muted mb-0">Control financiero de salidas de caja operacional.</p>
+    </div>
+    
+    <div class="d-flex gap-3 align-items-center">
+        <!-- Búsqueda -->
+        <div class="input-group bg-white rounded-pill shadow-sm" style="width: 250px; overflow: hidden;">
+            <span class="input-group-text bg-white border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="searchGastos" class="form-control border-0 shadow-none ps-2" placeholder="Buscar gasto...">
+        </div>
+
+        <a href="@Url.Action("Create", "Gastos")" class="btn btn-brand rounded-pill px-5 shadow-sm fw-bold">
+            Registrar Salida
+        </a>
+    </div>
+</div>
+
+<div class="px-2" style="padding-bottom: 2rem;">
+    <table class="table table-borderless align-middle w-100" id="gastosTable" style="border-collapse: separate; border-spacing: 0 15px;">
+        <thead class="text-secondary small text-uppercase fw-bold">
+            <tr>
+                <th class="ps-4 pb-2">Fecha</th>
+                <th class="pb-2">Concepto</th>
+                <th class="pb-2 text-center">Categoría</th>
+                <th class="pb-2">Importe</th>
+                <th class="pb-2 text-center">Referencia</th>
+                <th class="pe-4 pb-2 text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr class="gasto-row bg-white shadow-sm transition-all" style="border-radius: 20px;">
+                    <td class="ps-4 py-3 text-muted" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px; width: 15%;">
+                        <i class="bi bi-calendar-event me-1"></i> @item.Fecha.ToString("dd MMM yyyy")
+                    </td>
+                    <td class="py-3 search-concepto" style="width: 30%;">
+                        <h6 class="mb-0 fw-bold text-dark">@item.Concepto</h6>
+                    </td>
+                    <td class="py-3 text-center" style="width: 15%;">
+                        <span class="badge bg-light text-secondary rounded-pill border px-3">@item.Categoria</span>
+                    </td>
+                    <td class="py-3" style="width: 15%;">
+                        <h5 class="mb-0 fw-bold text-danger">-@item.Monto.ToString("C")</h5>
+                    </td>
+                    <td class="py-3 text-center text-muted small" style="width: 15%;">
+                        @(string.IsNullOrEmpty(item.Referencia) ? "N/A" : item.Referencia)
+                    </td>
+                    <td class="py-3 text-center pe-4" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 10%;">
+                        <form action="@Url.Action("Delete", "Gastos", new { id = item.Id })" method="post" class="form-eliminar m-0">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-light text-danger fw-bold rounded-circle shadow-sm border d-flex align-items-center justify-content-center btn-delete-gasto mx-auto" style="width: 38px; height: 38px;" title="Eliminar Registro">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 mt-4 bg-white rounded-5 shadow-sm">
+            <div class="mb-3">
+                <i class="bi bi-wallet2 text-muted" style="font-size: 3rem;"></i>
+            </div>
+            <h5 class="text-dark fw-bold">Sin egresos registrados</h5>
+            <p class="text-muted mb-4">Todo el historial de gastos operativos (luces, agua, stock) aparecerá aquí.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .transition-all { transition: all 0.3s ease; }
+    .gasto-row:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check TempData Messages
+            @if(TempData["SuccessMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Operación Exitosa!',
+                    text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
+                    confirmButtonText: 'Genial',
+                    confirmButtonColor: '#28a745',
+                    customClass: { popup: 'rounded-5 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                });
+                </text>
+            }
+
+            // Búsqueda
+            const searchInput = document.getElementById('searchGastos');
+            if(searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    let text = this.value.toLowerCase();
+                    document.querySelectorAll('#gastosTable tbody tr.gasto-row').forEach(row => {
+                        let concepto = row.querySelector('.search-concepto').textContent.toLowerCase();
+                        if(concepto.includes(text)) row.style.display = '';
+                        else row.style.display = 'none';
+                    });
+                });
+            }
+
+            // Confirmación Eliminar
+            const deleteButtons = document.querySelectorAll('.btn-delete-gasto');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const form = this.closest('.form-eliminar');
+                    Swal.fire({
+                        title: '¿Eliminar Gasto?',
+                        text: "Esta acción removerá el registro financiero de tus reportes.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ff6b6b',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, Eliminar',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'rounded-5 shadow-lg border-0',
+                            confirmButton: 'rounded-pill px-4 ms-2',
+                            cancelButton: 'rounded-pill px-4'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

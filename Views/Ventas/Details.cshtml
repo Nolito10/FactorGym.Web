@@ -1,0 +1,103 @@
+@model FactorFitGym.Web.Models.Venta
+
+@{
+    ViewData["Title"] = "Detalle del Ticket";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center mt-4 mb-5" style="min-height: 75vh;">
+    <div class="col-12 col-md-8 col-lg-5">
+        
+        <!-- Header Actions -->
+        <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+            <a href="@Url.Action("Index", "Ventas")" class="btn btn-light text-muted fw-bold rounded-pill shadow-sm border px-4 py-2">
+                <i class="bi bi-arrow-left me-2"></i> Volver al Historial
+            </a>
+            <button onclick="window.print()" class="btn btn-dark rounded-pill fw-bold shadow-sm border-0 px-4 py-2">
+                <i class="bi bi-printer me-2"></i> Imprimir Original
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative printable-ticket" style="background-color: #fcfcfc;">
+            
+            <!-- Estilo Perforado (Ticket Visual Effect) -->
+            <div style="height: 12px; background-image: radial-gradient(circle, #e8f0f6 6px, transparent 7px); background-size: 20px 20px; background-position: -10px -10px; position: absolute; top: -5px; left: 0; right: 0;"></div>
+            
+            <div class="card-body p-5 pt-5 pb-4">
+                
+                <div class="text-center mb-4">
+                    <img src="~/img/Logo.png" alt="Factor Fit Gym" style="max-height: 70px; opacity: 0.9;" class="mb-3" />
+                    <h5 class="fw-bolder text-dark mb-1">FACTOR FIT GYM</h5>
+                    <p class="text-muted small mb-0">¡Gracias por tu compra!</p>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center border-bottom border-dashed pb-3 mb-4">
+                    <div>
+                        <p class="mb-0 small text-muted text-uppercase fw-bold">Ticket Nro.</p>
+                        <h6 class="fw-bold text-dark mb-0 font-monospace">@Model.NumeroRecibo</h6>
+                    </div>
+                    <div class="text-end">
+                        <p class="mb-0 small text-muted text-uppercase fw-bold">Fecha / Hora</p>
+                        <h6 class="fw-bold text-dark mb-0">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</h6>
+                    </div>
+                </div>
+
+                <p class="mb-2 small text-muted text-uppercase fw-bold text-center mt-3">Artículos</p>
+                
+                <div class="table-responsive mb-4">
+                    <table class="table table-borderless table-sm mb-0 w-100">
+                        <thead>
+                            <tr class="border-bottom border-dashed text-muted">
+                                <th class="text-start pb-2" style="font-weight: 600;">Cant / Prod</th>
+                                <th class="text-end pb-2" style="font-weight: 600;">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in Model.DetallesVenta)
+                            {
+                                <tr>
+                                    <td class="pt-2">
+                                        <span class="fw-bold text-dark">@detalle.Cantidad&nbsp;x</span>&nbsp; 
+                                        <span class="text-dark">@(detalle.Producto?.Nombre ?? "Producto desconocido")</span>
+                                        <div class="text-muted small">Precio Unit: @detalle.PrecioUnitario.ToString("C")</div>
+                                    </td>
+                                    <td class="text-end fw-bold text-dark pt-2 align-middle">
+                                        @((detalle.Cantidad * detalle.PrecioUnitario).ToString("C"))
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-light p-3 rounded-4 mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted fw-bold">Método de Pago:</span>
+                        <span class="text-dark fw-bold">@Model.MetodoPago</span>
+                    </div>
+                    <hr class="border-dashed my-2" />
+                    <div class="d-flex justify-content-between align-items-end mt-1">
+                        <span class="text-dark text-uppercase fw-bolder">Total Pagado:</span>
+                        <h3 class="text-brand fw-bolder mb-0">@Model.Total.ToString("C")</h3>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Estilo Perforado Footer -->
+            <div style="height: 12px; background-image: radial-gradient(circle, #e8f0f6 6px, transparent 7px); background-size: 20px 20px; background-position: -10px 5px; position: absolute; bottom: -5px; left: 0; right: 0;"></div>
+        </div>
+        
+    </div>
+</div>
+
+<style>
+    .border-dashed { border-bottom: 2px dashed #dee2e6 !important; }
+
+    @Html.Raw("@media") print {
+        body * { visibility: hidden; }
+        .printable-ticket, .printable-ticket * { visibility: visible; }
+        .printable-ticket { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; }
+        #sidebar, .top-header, .btn { display: none !important; }
+    }
+</style>

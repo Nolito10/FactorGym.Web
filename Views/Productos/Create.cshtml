@@ -1,0 +1,77 @@
+@model FactorFitGym.Web.Models.Producto
+
+@{
+    ViewData["Title"] = "Nuevo Producto";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center mt-4" style="min-height: 75vh;">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-5 overflow-hidden">
+            <div class="bg-brand-light py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-box-seam-fill text-brand" style="font-size: 1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Nuevo Producto</h5>
+                <p class="text-muted small mt-2 mb-0 px-4">Registra un nuevo artículo en tu inventario físico.</p>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form asp-action="Create" method="post" id="formProducto">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <div>
+                            <label asp-for="Nombre" class="form-label fw-bold small ms-2 text-muted">Nombre del Producto <span class="text-danger">*</span></label>
+                            <input asp-for="Nombre" class="form-control rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem;" />
+                            <span asp-validation-for="Nombre" class="text-danger small ms-2"></span>
+                        </div>
+                        
+                        <div>
+                            <label asp-for="Categoria" class="form-label fw-bold small ms-2 text-muted">Categoría / Marca <span class="text-danger">*</span></label>
+                            <select asp-for="Categoria" class="form-select rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem;">
+                                <option value="" selected disabled>Seleccionar...</option>
+                                <option value="Bebidas">Bebidas</option>
+                                <option value="Suplementos">Suplementos</option>
+                                <option value="Accesorios">Accesorios</option>
+                                <option value="Snacks">Snacks</option>
+                            </select>
+                            <span asp-validation-for="Categoria" class="text-danger small ms-2"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="Precio" class="form-label fw-bold small ms-2 text-muted">Precio de Venta ($) <span class="text-danger">*</span></label>
+                            <input asp-for="Precio" type="number" step="0.01" min="0" class="form-control rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem;" />
+                            <span asp-validation-for="Precio" class="text-danger small ms-2"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <label asp-for="Stock" class="form-label fw-bold small ms-2 text-muted">Stock Inicial <span class="text-danger">*</span></label>
+                                <input asp-for="Stock" type="number" min="0" class="form-control rounded-pill border-0 px-4 py-2 text-center" style="background-color: #f4f6f9; font-size: 0.95rem;" />
+                                <span asp-validation-for="Stock" class="text-danger small ms-2"></span>
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="StockMinimo" class="form-label fw-bold small ms-2 text-muted">Stock Mínimo <span class="text-danger">*</span></label>
+                                <input asp-for="StockMinimo" type="number" min="0" class="form-control rounded-pill border-0 px-4 py-2 text-center" style="background-color: #f4f6f9; font-size: 0.95rem;" />
+                                <span asp-validation-for="StockMinimo" class="text-danger small ms-2"></span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <small class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-info-circle me-1"></i>Recibirás una alerta si el stock baja a este nivel mínimo.</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 d-flex gap-3 justify-content-center">
+                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm text-white" style="height: 45px;">Guardar Producto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

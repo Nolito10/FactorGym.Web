@@ -1,0 +1,66 @@
+@model FactorFitGym.Web.Models.Cliente
+
+@{
+    ViewData["Title"] = "Editar Cliente";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center" style="min-height: 75vh;">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex align-items-center justify-content-center flex-column">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 50px; height: 50px; background-color: @(Model.Genero == "Femenino" ? "#e83e8c" : "#0d6efd");">
+                    <i class="bi @(Model.Genero == "Femenino" ? "bi-gender-female" : "bi-gender-male") fs-3"></i>
+                </div>
+                <h3 class="fw-bold mb-0 text-center">Editar Cliente</h3>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Nombre" class="form-label fw-semibold text-dark">Nombre <span class="text-danger">*</span></label>
+                            <input asp-for="Nombre" class="form-control rounded-pill bg-light border-0 px-4" />
+                            <span asp-validation-for="Nombre" class="text-danger small mt-1"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Apellido" class="form-label fw-semibold text-dark">Apellido <span class="text-danger">*</span></label>
+                            <input asp-for="Apellido" class="form-control rounded-pill bg-light border-0 px-4" />
+                            <span asp-validation-for="Apellido" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Telefono" class="form-label fw-semibold text-dark">Teléfono</label>
+                            <input asp-for="Telefono" class="form-control rounded-pill bg-light border-0 px-4" />
+                            <span asp-validation-for="Telefono" class="text-danger small mt-1"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Genero" class="form-label fw-semibold text-dark">Género <span class="text-danger">*</span></label>
+                            <select asp-for="Genero" class="form-select rounded-pill bg-light border-0 px-4">
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                            </select>
+                            <span asp-validation-for="Genero" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="PinAcceso" class="form-label fw-semibold text-dark">PIN de Acceso (4 dígitos)</label>
+                            <input asp-for="PinAcceso" type="text" maxlength="4" class="form-control rounded-pill bg-light border-0 px-4 fw-bold" style="font-size: 1.1rem; text-align: center; letter-spacing: 10px;" />
+                            <small class="text-muted ms-2" style="font-size: 0.75rem;">PIN para el check-in en el kiosco de asistencia.</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm text-white">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

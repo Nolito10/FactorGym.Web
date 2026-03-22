@@ -1,0 +1,160 @@
+@model FactorFitGym.Web.Models.Pago
+
+@{
+    ViewData["Title"] = "Registrar Pago";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    
+    // Variables si venimos desde Membresias/Index
+    bool hasPresetData = ViewBag.ClienteNombre != null;
+}
+
+<div class="d-flex align-items-center justify-content-center mt-4" style="min-height: 75vh;">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-5 overflow-hidden">
+            <div class="bg-brand-light py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-cash-coin text-brand" style="font-size: 1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Comprobante de Ingreso</h5>
+                
+                @if (hasPresetData)
+                {
+                    <p class="text-muted small mt-2 mb-0 px-4">Recibiendo pago para la membresía de <b>@ViewBag.ClienteNombre</b> (@ViewBag.TipoPlan).</p>
+                }
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form id="formCreatePago" action="@Url.Action("Create", "Pagos")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    
+                    @if (hasPresetData)
+                    {
+                        <!-- Campos ocultos pre-enlazados -->
+                        <input type="hidden" asp-for="MembresiaId" />
+                        <input type="hidden" asp-for="ClienteId" />
+                        <input type="hidden" asp-for="TipoServicio" />
+                    }
+                    
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        @if (!hasPresetData)
+                        {
+                            <div>
+                                <label asp-for="MembresiaId" class="form-label fw-bold small ms-2" style="color: #6c757d;">Seleccionar Membresía a Cancelar <span class="text-danger">*</span></label>
+                                <select asp-for="MembresiaId" class="form-select rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;">
+                                    <option value="" selected disabled>-- Elegir Membresía Activa --</option>
+                                    @if(ViewBag.MembresiasActivas != null)
+                                    {
+                                        foreach (var mem in (IEnumerable<FactorFitGym.Web.Models.Membresia>)ViewBag.MembresiasActivas)
+                                        {
+                                            <option value="@mem.Id" data-costo="@mem.Costo.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)">@mem.Cliente.Nombre @mem.Cliente.Apellido - @mem.TipoPlan</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            
+                            <!-- Para pago manual, ocultamos ClienteId, se obtendrá en Backend según la membresia o se forzará en el Controller -->
+                        }
+
+                        <div>
+                            <label class="form-label fw-bold small ms-2" style="color: #6c757d;">Monto a Cobrar ($) <span class="text-danger">*</span></label>
+                            @{
+                                var montoDisplay = hasPresetData ? ViewBag.MontoSugerido?.ToString() : "";
+                            }
+                            <input name="Monto" type="hidden" value="@montoDisplay" />
+                            <div class="form-control rounded-pill border-0 px-4 fw-bold fs-5 d-flex align-items-center justify-content-center" 
+                                 style="background-color: #d1dfed; color: #0A58CA; height: 50px;" id="montoDisplay">
+                                $@(montoDisplay ?? "0.00")
+                            </div>
+                        </div>
+
+                        <div>
+                            <label asp-for="MetodoPago" class="form-label fw-bold small ms-2" style="color: #6c757d;">Método de Pago <span class="text-danger">*</span></label>
+                            <select asp-for="MetodoPago" class="form-select rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;">
+                                <option value="" selected disabled>Seleccionar...</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta">Tarjeta</option>
+                                <option value="Transferencia">Transferencia Bancaria</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label asp-for="Referencia" class="form-label fw-bold small ms-2" style="color: #6c757d;">Nro. Referencia / Comprobante (Opcional)</label>
+                            <input asp-for="Referencia" type="text" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" placeholder="Nro de Transacción" />
+                        </div>
+
+                        <div>
+                            <label asp-for="FechaPago" class="form-label fw-bold small ms-2" style="color: #6c757d;">Fecha del Pago <span class="text-danger">*</span></label>
+                            <input asp-for="FechaPago" type="date" class="form-control rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem; text-align: center;" />
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm" style="height: 45px;">Realizar Cobro y Generar Recibo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Auto-fill today's date
+            const fpPago = document.querySelector('[name="FechaPago"]');
+            if(fpPago && !fpPago.value){
+                const hoy = new Date();
+                hoy.setMinutes(hoy.getMinutes() - hoy.getTimezoneOffset());
+                fpPago.value = hoy.toISOString().slice(0, 10);
+            }
+
+            // Sync cost from membership dropdown (only in free-entry mode)
+            const valMembresia = document.getElementById('MembresiaId');
+            const montoHidden = document.querySelector('[name="Monto"]');
+            const montoDisplay = document.getElementById('montoDisplay');
+            if(valMembresia) {
+                valMembresia.addEventListener('change', function() {
+                    const opt = this.options[this.selectedIndex];
+                    if(opt && opt.dataset.costo) {
+                        if(montoHidden) montoHidden.value = opt.dataset.costo;
+                        if(montoDisplay) montoDisplay.textContent = '$' + opt.dataset.costo;
+                    }
+                });
+            }
+
+            // Form validation before submit
+            document.getElementById('formCreatePago').addEventListener('submit', function(event) {
+                const form = event.target;
+                const membresiaEl = form.querySelector('[name="MembresiaId"]');
+                const pMontoEl = form.querySelector('[name="Monto"]');
+                const pMonto = pMontoEl ? pMontoEl.value : '1';
+                const pMetodo = form.querySelector('[name="MetodoPago"]').value;
+
+                if(membresiaEl && !membresiaEl.value) {
+                    event.preventDefault();
+                    Swal.fire({ icon: 'warning', title: '¡Selecciona una Membresía!', confirmButtonText: 'OK', confirmButtonColor: '#ff6b6b', customClass: { popup: 'rounded-4', confirmButton: 'rounded-pill px-4' } });
+                    return false;
+                }
+
+                if(!pMonto || pMonto === '0') {
+                    event.preventDefault();
+                    Swal.fire({ icon: 'warning', title: '¡Monto Inválido!', text: 'la membresía no tiene costo asignado.', confirmButtonText: 'REVISAR', confirmButtonColor: '#ff6b6b', customClass: { popup: 'rounded-4', confirmButton: 'rounded-pill px-4' } });
+                    return false;
+                }
+                
+                if(!pMetodo) {
+                    event.preventDefault();
+                    Swal.fire({ icon: 'warning', title: '¡Falta el Método de Pago!', text: 'Elige Efectivo, Tarjeta o Transferencia.', confirmButtonText: 'ENTENDIDO', confirmButtonColor: '#ff6b6b', customClass: { popup: 'rounded-4', confirmButton: 'rounded-pill px-4' } });
+                    return false;
+                }
+                
+                const btnSubmit = form.querySelector('button[type="submit"]');
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando...';
+            });
+
+        });
+    </script>
+}

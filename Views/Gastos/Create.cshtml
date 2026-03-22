@@ -1,0 +1,86 @@
+@model FactorFitGym.Web.Models.Gasto
+
+@{
+    ViewData["Title"] = "Nuevo Gasto";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center mt-4" style="min-height: 75vh;">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-5 overflow-hidden">
+            <div class="bg-brand-light py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-box-arrow-right text-brand" style="font-size: 1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Registrar Salida de Caja</h5>
+                <p class="text-muted small mt-2 mb-0 px-4">Monitorea tus egresos financieros.</p>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <div>
+                            <label asp-for="Concepto" class="form-label fw-bold small ms-2 text-muted">Concepto del Gasto <span class="text-danger">*</span></label>
+                            <input asp-for="Concepto" class="form-control rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem;" placeholder="Ej. Pago de Luz CFE, Compra Proteínas" />
+                            <span asp-validation-for="Concepto" class="text-danger small ms-2"></span>
+                        </div>
+                        
+                        <div>
+                            <label asp-for="Categoria" class="form-label fw-bold small ms-2 text-muted">Categoría <span class="text-danger">*</span></label>
+                            <select asp-for="Categoria" class="form-select rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem;">
+                                <option value="" selected disabled>Seleccionar...</option>
+                                <option value="Productos / Stock">Compra de Productos (Stock)</option>
+                                <option value="Mantenimiento">Mantenimiento de Equipo</option>
+                                <option value="Servicios">Pago de Servicios (Luz, Agua, Internet)</option>
+                                <option value="Nomina">Sueldos y Nómina</option>
+                                <option value="Varios">Gastos Varios</option>
+                            </select>
+                            <span asp-validation-for="Categoria" class="text-danger small ms-2"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="Monto" class="form-label fw-bold small ms-2 text-muted">Monto Gastado ($) <span class="text-danger">*</span></label>
+                            <input asp-for="Monto" type="number" step="0.01" min="0.01" class="form-control rounded-pill border-0 px-4 py-2 text-center fw-bold" style="background-color: #fce8e8; color: #dc3545; font-size: 1.1rem;" placeholder="0.00" />
+                            <span asp-validation-for="Monto" class="text-danger small ms-2"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <label asp-for="Fecha" class="form-label fw-bold small ms-2 text-muted">Fecha <span class="text-danger">*</span></label>
+                                <input asp-for="Fecha" type="date" class="form-control rounded-pill border-0 px-4 py-2 text-center" style="background-color: #f4f6f9; font-size: 0.95rem;" id="inputFecha" />
+                                <span asp-validation-for="Fecha" class="text-danger small ms-2"></span>
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="Referencia" class="form-label fw-bold small ms-2 text-muted">Ref / Ticket</label>
+                                <input asp-for="Referencia" type="text" class="form-control rounded-pill border-0 px-4 py-2 text-center" style="background-color: #f4f6f9; font-size: 0.95rem;" placeholder="Opcional" />
+                                <span asp-validation-for="Referencia" class="text-danger small ms-2"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 d-flex gap-3 justify-content-center">
+                        <button type="submit" class="btn btn-danger rounded-pill px-5 fw-bold shadow-sm text-white" style="height: 45px;">Registrar Salida</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-fill today's date if empty
+            const fpData = document.getElementById('inputFecha');
+            if(fpData && !fpData.value){
+                const hoy = new Date();
+                hoy.setMinutes(hoy.getMinutes() - hoy.getTimezoneOffset());
+                fpData.value = hoy.toISOString().slice(0, 10);
+            }
+        });
+    </script>
+}

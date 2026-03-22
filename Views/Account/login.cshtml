@@ -1,0 +1,61 @@
+﻿@model FactorFitGym.Web.Models.LoginViewModel
+
+@{
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="container-login">
+    <div class="toggle-box">
+        <div class="toggle-panel">
+            <img src="~/img/Logo.png" asp-append-version="true" alt="Logo Factor Fit Gym">
+            <h1>¡Bienvenidos!</h1>
+        </div>
+    </div>
+
+    <div class="form-box">
+        <form id="loginForm" asp-controller="Account" asp-action="Login" method="post" novalidate>
+            <div class="form-header">
+                <h2>¡Hola de nuevo! 👋</h2>
+                <p>Ingresa a tu cuenta para continuar</p>
+            </div>
+
+            <div class="input-box">
+                <input asp-for="Username" placeholder="Nombre de Usuario" required>
+                <i class="bi bi-person-fill"></i>
+            </div>
+
+            <div class="input-box">
+                <input asp-for="Password" placeholder="Contraseña" type="password" required>
+                <i class="bi bi-lock-fill"></i>
+            </div>
+
+            <button type="submit" id="btnSubmit" class="btn-login">Ingresar</button>
+        </form>
+    </div>
+</div>
+
+<div id="customAlert" class="custom-alert-overlay">
+    <div class="custom-alert-box">
+        <div class="custom-alert-header">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <div class="custom-alert-body">
+            <h2 id="alertTitle">Warning!</h2>
+            <p id="alertMessage">Mensaje de error.</p>
+            <button type="button" class="btn-close-alert" onclick="closeAlert()">CLOSE</button>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/login.js" charset="utf-8" asp-append-version="true"></script>
+
+@if (!ViewData.ModelState.IsValid)
+{
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        showAlert('¡Acceso Denegado!', 'El usuario o la contraseña son incorrectos.');
+    });
+</script>
+}
