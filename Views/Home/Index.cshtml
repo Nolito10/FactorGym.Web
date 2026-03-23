@@ -6,7 +6,7 @@
     string utilColorClass = utilidad >= 0 ? "text-factor-emerald" : "text-factor-rose";
     string utilBorderClass = utilidad >= 0 ? "border-factor-emerald" : "border-factor-rose";
     string utilBgClass = utilidad >= 0 ? "bg-factor-emerald-opacity" : "bg-factor-rose-opacity";
-    string utilIcon = utilidad >= 0 ? "bi-piggy-bank" : "bi-graph-down-arrow";
+    string utilIcon = utilidad >= 0 ? "bi-cash-stack" : "bi-graph-down-arrow";
 }
 
 <div class="px-2 pb-5 mt-4">
@@ -89,14 +89,6 @@
                         <div class="rounded-circle @utilBgClass d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                             <i class="bi @utilIcon @utilColorClass fs-5"></i>
                         </div>
-                        @if (utilidad >= 0)
-                        {
-                            <span class="badge @utilBgClass @utilColorClass rounded-pill px-3 py-2 small border-0">Ganancia Libre</span>
-                        }
-                        else
-                        {
-                            <span class="badge @utilBgClass @utilColorClass rounded-pill px-3 py-2 small border-0">Pérdida Mtd</span>
-                        }
                     </div>
                     <h6 class="text-muted fw-bold small text-uppercase mb-1">Utilidad Neta</h6>
                     <h3 class="fw-bold @utilColorClass mb-0 d-flex align-items-center">

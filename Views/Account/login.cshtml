@@ -1,4 +1,4 @@
-﻿@model FactorFitGym.Web.Models.LoginViewModel
+@model FactorFitGym.Web.Models.LoginViewModel
 
 @{
     Layout = "~/Views/Shared/_LayoutLogin.cshtml";
@@ -14,19 +14,19 @@
     </div>
 
     <div class="form-box">
-        <form id="loginForm" asp-controller="Account" asp-action="Login" method="post" novalidate>
+        <form id="loginForm" asp-controller="Account" asp-action="Login" method="post" autocomplete="off" novalidate>
             <div class="form-header">
-                <h2>¡Hola de nuevo! 👋</h2>
+                <h2>¡Hola de nuevo!</h2>
                 <p>Ingresa a tu cuenta para continuar</p>
             </div>
 
             <div class="input-box">
-                <input asp-for="Username" placeholder="Nombre de Usuario" required>
+                <input asp-for="Username" placeholder="Nombre de Usuario" value="" autocomplete="off" required>
                 <i class="bi bi-person-fill"></i>
             </div>
 
             <div class="input-box">
-                <input asp-for="Password" placeholder="Contraseña" type="password" required>
+                <input asp-for="Password" placeholder="Contraseña" type="password" value="" autocomplete="new-password" required>
                 <i class="bi bi-lock-fill"></i>
             </div>
 

@@ -22,6 +22,11 @@ body {
     background-color: var(--main-bg) !important;
 }
 
+/* Ensure top header matches sidebar */
+.top-header {
+    background-color: var(--factor-dark) !important;
+}
+
 /* Serious color palette for dashboard cards */
 .border-factor-dark { border-left-color: var(--factor-dark) !important; }
 .text-factor-dark { color: var(--factor-dark) !important; }

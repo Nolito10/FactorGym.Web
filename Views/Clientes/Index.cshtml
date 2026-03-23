@@ -33,7 +33,7 @@
                 <tr class="cliente-row bg-white shadow-sm transition-all" style="border-radius: 20px;">
                     <td class="ps-4 py-3" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px; width: 35%;">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white me-3 shadow-sm" style="width: 50px; height: 50px; background-color: @(item.Genero == "Femenino" ? "#FF6B8B" : "#4A90E2");">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-factor-dark bg-factor-dark-opacity me-3 shadow-sm" style="width: 50px; height: 50px;">
                                 <i class="bi @(item.Genero == "Femenino" ? "bi-gender-female" : "bi-gender-male") fs-3"></i>
                             </div>
                             <div>
@@ -49,17 +49,17 @@
                         </div>
                     </td>
                     <td class="py-3 text-center" style="width: 20%;">
-                        <span class="badge @(item.Genero == "Femenino" ? "bg-danger" : "bg-primary") bg-opacity-10 @(item.Genero == "Femenino" ? "text-danger" : "text-primary") rounded-pill px-4 py-2 fw-bold" style="font-size: 0.9rem;">
+                        <span class="badge bg-light text-secondary border rounded-pill px-4 py-2 fw-bold" style="font-size: 0.9rem;">
                             @item.Genero
                         </span>
                     </td>
                     <td class="text-center pe-4 py-3" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 20%;">
                         <div class="d-flex justify-content-center gap-2">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light bg-opacity-50 border-0 text-info fw-bold px-3 rounded-pill d-flex align-items-center shadow-sm" title="Detalles">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light bg-opacity-50 border-0 text-factor-slate fw-bold px-3 rounded-pill d-flex align-items-center shadow-sm" title="Detalles">
                                 <i class="bi bi-eye-fill fs-5"></i>
                             </a>
                             
-                            <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-warning fw-bold px-3 rounded-pill btn-edit d-flex align-items-center shadow-sm" title="Editar"
+                            <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-factor-dark fw-bold px-3 rounded-pill btn-edit d-flex align-items-center shadow-sm" title="Editar"
                                 data-id="@item.Id" 
                                 data-nombre="@item.Nombre" 
                                 data-apellido="@item.Apellido" 
@@ -70,7 +70,7 @@
                                 <i class="bi bi-pencil-fill fs-5"></i>
                             </button>
                             
-                            <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-danger fw-bold px-3 rounded-pill btn-delete d-flex align-items-center shadow-sm" title="Borrar"
+                            <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-danger opacity-75 fw-bold px-3 rounded-pill btn-delete d-flex align-items-center shadow-sm" title="Borrar"
                                 data-id="@item.Id"
                                 data-fullname="@item.Nombre @item.Apellido"
                                 data-bs-toggle="modal" 
