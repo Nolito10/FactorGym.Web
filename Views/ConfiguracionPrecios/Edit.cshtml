@@ -1,0 +1,61 @@
+@model FactorFitGym.Web.Models.ConfiguracionPrecio
+
+@{
+    ViewData["Title"] = "Editar Precio";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center mt-4" style="min-height: 70vh;">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card border-0 shadow-sm rounded-5 overflow-hidden">
+            <div class="bg-brand-light py-4 text-center">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                    <i class="bi bi-currency-dollar text-brand" style="font-size: 1.8rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Actualizar Precio</h5>
+            </div>
+            
+            <div class="card-body p-4 p-md-5 bg-white">
+                <form asp-action="Edit">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="Clave" />
+                    <input type="hidden" asp-for="Nombre" />
+
+                    <div class="mb-4 text-center">
+                        <h6 class="text-muted fw-bold text-uppercase small mb-1">Modificando</h6>
+                        <h4 class="fw-bold text-dark">@Model.Nombre</h4>
+                        <span class="badge bg-light text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-2 mt-2">
+                            Código: @Model.Clave
+                        </span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Precio" class="form-label fw-bold text-secondary text-uppercase small">Nuevo Precio (C$)</label>
+                        <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-primary border-opacity-25">
+                            <span class="input-group-text bg-transparent border-0 ps-4 pe-2">
+                                <i class="bi bi-cash-stack text-primary"></i>
+                            </span>
+                            <input asp-for="Precio" type="number" step="0.01" class="form-control bg-transparent border-0 fw-bold px-2 text-dark" style="font-size: 1.2rem;" required />
+                        </div>
+                        <span asp-validation-for="Precio" class="text-danger small mt-1 d-block ms-3"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-5">
+                        <button type="submit" class="btn btn-brand btn-lg rounded-pill fw-bold shadow-sm">
+                            Guardar Precio
+                        </button>
+                        <a asp-action="Index" class="btn btn-light btn-lg rounded-pill fw-bold text-muted border">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

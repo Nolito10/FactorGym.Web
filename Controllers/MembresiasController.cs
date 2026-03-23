@@ -56,6 +56,10 @@ namespace FactorFitGym.Web.Controllers
 
             ViewBag.ClienteId = new SelectList(clientes, "Id", "NombreCompleto", clienteId);
             
+            ViewBag.PrecioBasico = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == "PLAN_BASICO")?.Precio ?? 20.00m;
+            ViewBag.PrecioPremium = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == "PLAN_PREMIUM")?.Precio ?? 35.00m;
+            ViewBag.PrecioFull = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == "PLAN_FULL")?.Precio ?? 50.00m;
+
             return View();
         }
 

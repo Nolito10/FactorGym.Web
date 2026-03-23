@@ -19,9 +19,15 @@ namespace FactorFitGym.Web.Controllers
         }
 
         // GET: Productos
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool alertasStock = false)
         {
-            var inventario = await _context.Productos.OrderBy(p => p.Nombre).ToListAsync();
+            var query = _context.Productos.AsQueryable();
+            if (alertasStock)
+            {
+                query = query.Where(p => p.Stock <= p.StockMinimo);
+            }
+            var inventario = await query.OrderBy(p => p.Nombre).ToListAsync();
+            ViewBag.AlertasStock = alertasStock;
             return View(inventario);
         }
 

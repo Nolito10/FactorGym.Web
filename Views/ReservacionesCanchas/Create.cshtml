@@ -51,7 +51,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Monto del Pago Reservación ($)</label>
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Monto del Pago Reservación (C$)</label>
                             <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-success border-opacity-25">
                                 <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
                                     <i class="bi bi-cash-stack text-success"></i>
@@ -197,10 +197,11 @@
                         // Calculate diff in hours
                         let diffMs = fFin - fIni;
                         let diffHrs = diffMs / (1000 * 60 * 60);
-                        let total = Math.max(1, diffHrs) * 20.00; // $20.00 base per hour
+                        let basePrice = @ViewBag.PrecioCancha;
+                        let total = Math.max(1, diffHrs) * basePrice;
                         inputMonto.value = total.toFixed(2);
                     } else {
-                        inputMonto.value = '20.00'; // Fallback
+                        inputMonto.value = '@String.Format("{0:N2}", ViewBag.PrecioCancha)'; // Fallback
                     }
                 }
             }

@@ -50,6 +50,7 @@ namespace FactorFitGym.Web.Controllers
         // GET: ReservacionesCanchas/Create
         public IActionResult Create()
         {
+            ViewBag.PrecioCancha = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == "CANCHA_HORA")?.Precio ?? 20.00m;
             return View();
         }
 

@@ -1,7 +1,118 @@
-﻿@{
+@{
     Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
     ViewData["Title"] = "Panel Principal";
+
+    decimal utilidad = ViewBag.UtilidadNeta ?? 0;
+    string utilColorClass = utilidad >= 0 ? "text-factor-emerald" : "text-factor-rose";
+    string utilBorderClass = utilidad >= 0 ? "border-factor-emerald" : "border-factor-rose";
+    string utilBgClass = utilidad >= 0 ? "bg-factor-emerald-opacity" : "bg-factor-rose-opacity";
+    string utilIcon = utilidad >= 0 ? "bi-piggy-bank" : "bi-graph-down-arrow";
 }
 
-<h2 class="text-factor-dark fw-bold">Bienvenido al panel</h2>
-<p class="text-muted">Selecciona una opción en el menú lateral para comenzar.</p>
+<div class="px-2 pb-5 mt-4">
+    <div class="row g-4">
+        <!-- Tarjeta: Membresías Activas (Visible para todos) -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 p-4 border-start border-4 border-factor-dark" style="border-radius: 15px;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle bg-factor-dark-opacity d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-people-fill text-factor-dark fs-5"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted fw-bold small text-uppercase mb-1">Membresías Activas</h6>
+                <h3 class="fw-bold text-dark mb-0">@ViewBag.MembresiasActivas</h3>
+            </div>
+        </div>
+
+        <!-- Tarjeta: Visitas Hoy (Visible para todos) -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 p-4 border-start border-4 border-factor-slate" style="border-radius: 15px;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle bg-factor-slate-opacity d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-person-check-fill text-factor-slate fs-5"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted fw-bold small text-uppercase mb-1">Visitas de Hoy</h6>
+                <h3 class="fw-bold text-dark mb-0">@ViewBag.VisitasHoy</h3>
+            </div>
+        </div>
+
+        <!-- Tarjeta: Productos Bajo Stock (Visible para todos) -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 p-4 border-start border-4 border-factor-rose" style="border-radius: 15px;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="rounded-circle bg-factor-rose-opacity d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-exclamation-triangle-fill text-factor-rose fs-5"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted fw-bold small text-uppercase mb-1">Stock Bajo</h6>
+                <h3 class="fw-bold text-dark mb-0">@ViewBag.ProductosBajoStock</h3>
+            </div>
+        </div>
+
+        @if (User.IsInRole("Administrador"))
+        {
+            <!-- Tarjeta: Egresos (Visible solo Admin) -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 p-4 border-start border-4 border-factor-rose" style="border-radius: 15px;">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="rounded-circle bg-factor-rose-opacity d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="bi bi-graph-down-arrow text-factor-rose fs-5"></i>
+                        </div>
+                    </div>
+                    <h6 class="text-muted fw-bold small text-uppercase mb-1">Egresos del Mes</h6>
+                    <h3 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                        <span class="fs-5 me-1 text-muted">C$</span>@String.Format("{0:N2}", ViewBag.EgresosTotales)
+                    </h3>
+                </div>
+            </div>
+
+            <!-- Tarjeta: Ingresos (Visible solo Admin) -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 p-4 border-start border-4 border-factor-slate" style="border-radius: 15px;">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="rounded-circle bg-factor-slate-opacity d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="bi bi-graph-up-arrow text-factor-slate fs-5"></i>
+                        </div>
+                    </div>
+                    <h6 class="text-muted fw-bold small text-uppercase mb-1">Ingresos del Mes</h6>
+                    <h3 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                        <span class="fs-5 me-1 text-muted">C$</span>@String.Format("{0:N2}", ViewBag.IngresosTotales)
+                    </h3>
+                </div>
+            </div>
+
+            <!-- Tarjeta: Utilidad Neta (Visible solo Admin) -->
+            <div class="col-12 col-md-12 col-lg-8">
+                <div class="card border-0 shadow-sm h-100 p-4 border-start border-4 @utilBorderClass" style="border-radius: 15px;">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="rounded-circle @utilBgClass d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                            <i class="bi @utilIcon @utilColorClass fs-5"></i>
+                        </div>
+                        @if (utilidad >= 0)
+                        {
+                            <span class="badge @utilBgClass @utilColorClass rounded-pill px-3 py-2 small border-0">Ganancia Libre</span>
+                        }
+                        else
+                        {
+                            <span class="badge @utilBgClass @utilColorClass rounded-pill px-3 py-2 small border-0">Pérdida Mtd</span>
+                        }
+                    </div>
+                    <h6 class="text-muted fw-bold small text-uppercase mb-1">Utilidad Neta</h6>
+                    <h3 class="fw-bold @utilColorClass mb-0 d-flex align-items-center">
+                        <span class="fs-5 me-1 text-muted">C$</span>@String.Format("{0:N2}", utilidad)
+                    </h3>
+                </div>
+            </div>
+        }
+        
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+</style>

@@ -1,16 +1,68 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using FactorGym.Web.Models;
-
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using FactorGym.Web.Models;
 
 namespace FactorGym.Web.Controllers;
 
 [Authorize(Roles = "Administrador,Empleado")]
 public class HomeController : Controller
 {
-    public IActionResult Index()
+    private readonly FactorFitGym.Web.Models.ApplicationDbContext _context;
+
+    public HomeController(FactorFitGym.Web.Models.ApplicationDbContext context)
     {
+        _context = context;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        var now = DateTime.Now;
+        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+        var endOfMonth = startOfMonth.AddMonths(1).AddTicks(-1);
+        var today = now.Date;
+
+        // Ingresos por Membresías (Pagos del mes)
+        var ingresosPagos = await _context.Pagos
+            .Where(p => p.FechaPago >= startOfMonth && p.FechaPago <= endOfMonth)
+            .SumAsync(p => p.Monto);
+
+        // Ingresos por Tienda (Ventas del mes)
+        var ingresosTienda = await _context.Ventas
+            .Where(v => v.Fecha >= startOfMonth && v.Fecha <= endOfMonth)
+            .SumAsync(v => v.Total);
+
+        var ingresosTotales = ingresosPagos + ingresosTienda;
+
+        // Egresos (Gastos del mes)
+        var egresos = await _context.Gastos
+            .Where(g => g.Fecha >= startOfMonth && g.Fecha <= endOfMonth)
+            .SumAsync(g => g.Monto);
+
+        // Visitas de Hoy
+        var visitasHoy = await _context.Asistencias
+            .CountAsync(a => a.FechaHoraEntrada.Date == today);
+
+        // Membresías Activas
+        var membresiasActivas = await _context.Membresias
+            .CountAsync(m => m.Estado == "Activa");
+
+        // Productos bajo stock
+        var productosBajoStock = await _context.Productos
+            .CountAsync(p => p.Stock <= p.StockMinimo);
+
+        ViewBag.IngresosTotales = ingresosTotales;
+        ViewBag.EgresosTotales = egresos;
+        ViewBag.UtilidadNeta = ingresosTotales - egresos;
+        ViewBag.VisitasHoy = visitasHoy;
+        ViewBag.MembresiasActivas = membresiasActivas;
+        ViewBag.ProductosBajoStock = productosBajoStock;
+        ViewBag.MesActual = now.ToString("MMMM yyyy").ToUpper();
+
         return View();
     }
 

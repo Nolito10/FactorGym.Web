@@ -133,20 +133,12 @@ namespace FactorFitGym.Web.Controllers
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A4);
-                    page.Margin(2, Unit.Centimetre);
+                    page.ContinuousSize(226.7f); // 80mm width
+                    page.Margin(10); // Small margin for POS
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(11));
+                    page.DefaultTextStyle(x => x.FontSize(9).FontColor(Colors.Black));
 
-                    page.Header().Element(ComposeHeader);
-                    page.Content().Element(x => ComposeContent(x, pago));
-                    page.Footer().AlignCenter().Text(x =>
-                    {
-                        x.Span("Página ");
-                        x.CurrentPageNumber();
-                        x.Span(" de ");
-                        x.TotalPages();
-                    });
+                    page.Content().Element(x => ComposeTicket(x, pago));
                 });
             });
 
@@ -154,146 +146,66 @@ namespace FactorFitGym.Web.Controllers
             return File(pdfBytes, "application/pdf", $"Recibo_{pago.NumeroRecibo}.pdf");
         }
 
-        void ComposeHeader(IContainer container)
+        void ComposeTicket(IContainer container, Pago pago)
         {
             container.Column(col =>
             {
-                col.Item().BorderBottom(3).BorderColor("0A58CA").PaddingBottom(10).Row(row =>
+                // HEADER
+                col.Item().AlignCenter().Text("FACTOR FIT GYM")
+                    .FontSize(14).Bold().FontColor("000000");
+                col.Item().AlignCenter().Text("Comprobante de Pago")
+                    .FontSize(10).FontColor(Colors.Grey.Darken2);
+                
+                col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
+                
+                // INFO TXT
+                col.Item().Text($"Recibo: {pago.NumeroRecibo}");
+                col.Item().Text($"Fecha: {pago.FechaPago:dd/MM/yyyy HH:mm}");
+                col.Item().Text($"Cliente: {pago.Cliente.Nombre} {pago.Cliente.Apellido}");
+                if (!string.IsNullOrEmpty(pago.Cliente.PinAcceso))
                 {
-                    row.RelativeItem().Column(column =>
-                    {
-                        column.Item().Text("FACTOR FIT GYM")
-                            .FontSize(22).Bold().FontColor("0A58CA");
-                        column.Item().Text("Comprobante de Pago")
-                            .FontSize(11).FontColor(Colors.Grey.Medium);
-                    });
-                    row.ConstantItem(120).AlignRight().Column(column =>
-                    {
-                        column.Item().AlignRight().Text("Nro. Recibo").FontSize(9).FontColor(Colors.Grey.Medium);
-                        column.Item().AlignRight().Text(text =>
-                        {
-                            text.Span("").FontSize(9);
-                        });
-                    });
-                });
-            });
-        }
+                    col.Item().Text($"PIN de Ingreso: {pago.Cliente.PinAcceso}").Bold();
+                }
 
-        void ComposeContent(IContainer container, Pago pago)
-        {
-            container.PaddingVertical(8).Column(column =>
-            {
-                column.Spacing(6);
+                col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
 
-                // === ENCABEZADO DE RECIBO ===
-                column.Item().PaddingTop(10).Row(row =>
+                // ITEMS
+                col.Item().Text("DETALLE DE MEMBRESÍA").Bold();
+                col.Item().PaddingTop(2).Text($"{pago.Membresia.Tipo} - {pago.TipoServicio}");
+                col.Item().Text($"Modalidad: {pago.Membresia.Frecuencia ?? "Mensual"}");
+                col.Item().Text($"Vigencia: {pago.Membresia.FechaInicio:dd/MM/yyyy} a {pago.Membresia.FechaFin:dd/MM/yyyy}");
+                
+                col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
+
+                // TOTAL
+                col.Item().Row(row =>
                 {
-                    row.RelativeItem().Text(txt =>
-                    {
-                        txt.Span("No. Recibo: ").Bold();
-                        txt.Span(pago.NumeroRecibo).FontColor("0A58CA");
-                    });
-                    row.RelativeItem().AlignRight().Text(txt =>
-                    {
-                        txt.Span("Fecha: ").Bold();
-                        txt.Span(pago.FechaPago.ToString("dd/MM/yyyy  HH:mm"));
-                    });
+                    row.RelativeItem().Text("Método de Pago:").Bold();
+                    row.RelativeItem().AlignRight().Text(pago.MetodoPago);
                 });
 
-                column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-
-                // === DATOS DEL CLIENTE ===
-                column.Item().PaddingTop(6).Background("F8FAFF").Padding(10).Column(sec =>
+                if (!string.IsNullOrEmpty(pago.Referencia))
                 {
-                    sec.Item().Text("DATOS DEL CLIENTE").FontSize(9).Bold().FontColor(Colors.Grey.Medium);
-                    sec.Spacing(3);
-                    sec.Item().PaddingTop(4).Row(row =>
+                    col.Item().Row(row =>
                     {
-                        row.RelativeItem().Text(txt => { txt.Span("Nombre: ").Bold(); txt.Span(pago.Cliente.Nombre + " " + pago.Cliente.Apellido); });
-                        row.RelativeItem().Text(txt => { txt.Span("Teléfono: ").Bold(); txt.Span(pago.Cliente.Telefono ?? "—"); });
+                        row.RelativeItem().Text("Referencia:").Bold();
+                        row.RelativeItem().AlignRight().Text(pago.Referencia);
                     });
-                    sec.Item().PaddingTop(4).Row(row =>
-                    {
-                        row.RelativeItem().Text(txt =>
-                        {
-                            txt.Span("PIN de Acceso (Check-In): ").Bold();
-                            txt.Span(pago.Cliente.PinAcceso ?? "Sin asignar").FontSize(13).Bold().FontColor("0A58CA");
-                        });
-                    });
+                }
+
+                col.Item().PaddingTop(5).Row(row =>
+                {
+                    row.RelativeItem().Text("TOTAL PAGADO:").Bold().FontSize(10);
+                    row.RelativeItem().AlignRight().Text($"C${pago.Monto:N2}").Bold().FontSize(12);
                 });
 
-                column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
 
-                // === DETALLE DE MEMBRESÍA ===
-                column.Item().PaddingTop(6).Column(sec =>
-                {
-                    sec.Item().Text("DETALLE DE MEMBRESÍA").FontSize(9).Bold().FontColor(Colors.Grey.Medium);
-                    sec.Spacing(4);
-
-                    sec.Item().PaddingTop(4).Table(table =>
-                    {
-                        table.ColumnsDefinition(cols =>
-                        {
-                            cols.RelativeColumn(2);
-                            cols.RelativeColumn(2);
-                            cols.RelativeColumn();
-                        });
-
-                        // Header row
-                        table.Header(header =>
-                        {
-                            header.Cell().Background("0A58CA").Padding(4).Text("Plan / Servicio").FontColor(Colors.White).Bold().FontSize(9);
-                            header.Cell().Background("0A58CA").Padding(4).Text("Frecuencia").FontColor(Colors.White).Bold().FontSize(9);
-                            header.Cell().Background("0A58CA").Padding(4).AlignRight().Text("Costo").FontColor(Colors.White).Bold().FontSize(9);
-                        });
-
-                        // Data row
-                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text($"{pago.Membresia.Tipo} — {pago.TipoServicio}").FontSize(10);
-                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(pago.Membresia.Frecuencia ?? "Mensual").FontSize(10);
-                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).AlignRight().Text($"₡{pago.Monto:N2}").Bold().FontSize(10).FontColor("0A58CA");
-                    });
-                });
-
-                // === VIGENCIA ===
-                column.Item().PaddingTop(6).Background("EFF6FF").Padding(10).Row(row =>
-                {
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Text("VIGENCIA DEL PLAN").FontSize(9).Bold().FontColor(Colors.Grey.Medium);
-                        col.Item().PaddingTop(4).Row(r =>
-                        {
-                            r.RelativeItem().Text(txt => { txt.Span("Inicio: ").Bold(); txt.Span(pago.Membresia.FechaInicio.ToString("dd/MM/yyyy")); });
-                            r.RelativeItem().Text(txt => { txt.Span("Vence: ").Bold().FontColor("B91C1C"); txt.Span(pago.Membresia.FechaFin.ToString("dd/MM/yyyy")).FontColor("B91C1C").Bold(); });
-                        });
-                    });
-                });
-
-                column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-
-                // === TOTAL Y MÉTODO DE PAGO ===
-                column.Item().PaddingTop(4).Row(row =>
-                {
-                    row.RelativeItem().Text(txt =>
-                    {
-                        txt.Span("Método de Pago: ").Bold();
-                        txt.Span(pago.MetodoPago);
-                        if (!string.IsNullOrEmpty(pago.Referencia))
-                        {
-                            txt.Span("  Ref: ").Bold();
-                            txt.Span(pago.Referencia);
-                        }
-                    });
-                    row.ConstantItem(130).AlignRight().Text(txt =>
-                    {
-                        txt.Span("TOTAL PAGADO: ").Bold().FontSize(12);
-                        txt.Span($"₡{pago.Monto:N2}").Bold().FontSize(14).FontColor("0A58CA");
-                    });
-                });
-
-                // === PIE ===
-                column.Item().PaddingTop(20).BorderTop(1).BorderColor(Colors.Grey.Lighten2).PaddingTop(8).AlignCenter()
-                    .Text("¡Gracias por ser parte de Factor Fit Gym! Este documento es su comprobante oficial de pago.")
-                    .Italic().FontSize(9).FontColor(Colors.Grey.Medium);
+                // FOOTER
+                col.Item().PaddingTop(10).AlignCenter()
+                    .Text("¡Gracias por su preferencia!")
+                    .Italic().FontSize(8);
+                col.Item().AlignCenter().Text("Este documento es su comprobante.").FontSize(8);
             });
         }
     }

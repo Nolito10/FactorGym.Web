@@ -43,7 +43,7 @@
                                 <tr>
                                     <th class="py-3">Fecha</th>
                                     <th class="py-3">Hora Entrada</th>
-                                    <th class="py-3">Hora Salida</th>
+                                   
                                     <th class="py-3 text-center">Método</th>
                                 </tr>
                             </thead>
@@ -53,7 +53,7 @@
                                     <tr>
                                         <td><span class="fw-semibold text-dark">@asistencia.FechaHoraEntrada.ToString("dd MMM yyyy")</span></td>
                                         <td><span class="text-muted"><i class="bi bi-box-arrow-in-right me-1 text-success"></i> @asistencia.FechaHoraEntrada.ToString("hh:mm tt")</span></td>
-                                        <td><span class="text-muted">@(asistencia.FechaHoraSalida?.ToString("hh:mm tt") ?? "--:--")</span></td>
+                                       
                                         <td class="text-center">
                                             <span class="badge bg-light text-secondary border border-secondary rounded-pill">
                                                 @(string.IsNullOrEmpty(asistencia.MetodoRegistro) ? "Manual" : asistencia.MetodoRegistro)

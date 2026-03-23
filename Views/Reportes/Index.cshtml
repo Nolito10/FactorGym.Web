@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Centro de Reportes";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5 mt-3 px-2">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Generador de Reportes Analíticos</h2>
+        <p class="text-muted mb-0">Exporta la información de forma estructurada en formato Excel para la toma de decisiones.</p>
+    </div>
+</div>
+
+<div class="px-2 pb-5">
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger text-danger border-0 rounded-4 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row g-4">
+        
+        <!-- Panel 1: Finanzas -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 p-4 border-top border-4 border-success" style="border-radius: 20px;">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-wallet2 text-success fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Flujo de Efectivo</h4>
+                    <p class="text-muted small">Ingresos por membresías, ventas de tienda vs. Egresos y cálculo de utilidad neta.</p>
+                </div>
+                
+                <form asp-action="ExportarFinanzasExcel" method="post" class="mt-auto">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Fecha Inicio</label>
+                            <input type="date" name="fechaInicio" class="form-control rounded-pill bg-light border-0" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Fecha Fin</label>
+                            <input type="date" name="fechaFin" class="form-control rounded-pill bg-light border-0" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 rounded-pill fw-bold" style="height: 45px;">
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i>Descargar Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel 2: Afluencia -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 p-4 border-top border-4 border-primary" style="border-radius: 20px;">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-people-fill text-primary fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Afluencia y Horarios</h4>
+                    <p class="text-muted small">Reporte de check-ins en el kiosco para identificar horas pico y nivel de ocupación.</p>
+                </div>
+                
+                <form asp-action="ExportarAfluenciaExcel" method="post" class="mt-auto">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Fecha Inicio</label>
+                            <input type="date" name="fechaInicio" class="form-control rounded-pill bg-light border-0" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Fecha Fin</label>
+                            <input type="date" name="fechaFin" class="form-control rounded-pill bg-light border-0" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 rounded-pill fw-bold" style="height: 45px;">
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i>Descargar Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel 3: Rendimiento Tienda -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 p-4 border-top border-4 border-warning" style="border-radius: 20px;">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                        <i class="bi bi-shop text-warning fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Rendimiento de Tienda</h4>
+                    <p class="text-muted small">Análisis de los productos de mostrador para descubrir los más vendidos (Best Sellers).</p>
+                </div>
+                
+                <form asp-action="ExportarTiendaExcel" method="post" class="mt-auto">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Fecha Inicio</label>
+                            <input type="date" name="fechaInicio" class="form-control rounded-pill bg-light border-0" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Fecha Fin</label>
+                            <input type="date" name="fechaFin" class="form-control rounded-pill bg-light border-0" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 rounded-pill fw-bold" style="height: 45px;">
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i>Descargar Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Auto-fill dates with current month (1st day to today)
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            const formatDate = (date) => {
+                const tzOffset = date.getTimezoneOffset() * 60000;
+                return new Date(date.getTime() - tzOffset).toISOString().split('T')[0];
+            };
+
+            const inputsInicio = document.querySelectorAll('input[name="fechaInicio"]');
+            const inputsFin = document.querySelectorAll('input[name="fechaFin"]');
+
+            inputsInicio.forEach(el => el.value = formatDate(firstDay));
+            inputsFin.forEach(el => el.value = formatDate(today));
+        });
+    </script>
+}

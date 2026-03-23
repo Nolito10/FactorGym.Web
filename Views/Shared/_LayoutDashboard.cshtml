@@ -111,8 +111,9 @@
                 </li>
                 @if (User.IsInRole("Administrador"))
                 {
+                    <li class="mb-2"><a href="@Url.Action("Index", "ConfiguracionPrecios")" class="text-decoration-none rounded menu-item @(ctrl == "ConfiguracionPrecios" ? "active" : "")"><i class="bi bi-tags-fill me-2 fs-4"></i> <span>Gestión de Precios</span></a></li>
                     <li class="mb-2"><a href="@Url.Action("Index", "Usuarios")" class="text-decoration-none rounded menu-item @(ctrl == "Usuarios" ? "active" : "")"><i class="bi bi-gear-fill me-2 fs-4"></i> <span>Adm. de Usuarios</span></a></li>
-                    <li class="mb-2"><a href="#" class="text-decoration-none rounded menu-item @(ctrl == "Reportes" ? "active" : "")"><i class="bi bi-bar-chart-fill me-2 fs-4"></i> <span>Reportes</span></a></li>
+                    <li class="mb-2"><a href="@Url.Action("Index", "Reportes")" class="text-decoration-none rounded menu-item @(ctrl == "Reportes" ? "active" : "")"><i class="bi bi-bar-chart-fill me-2 fs-4"></i> <span>Reportes</span></a></li>
                 }
             </ul>
             </div>
@@ -128,11 +129,18 @@
                     </div>
 
                     <div class="d-flex align-items-center ms-auto gap-4">
-                        <a href="#" class="text-dark position-relative notification-bell">
+                        @{
+                            var productosBajoStock = _db.Productos.Count(p => p.Stock <= p.StockMinimo);
+                        }
+                        <a href="@Url.Action("Index", "Productos", new { alertasStock = true })" class="text-dark position-relative notification-bell">
                             <i class="bi bi-bell fs-5 text-muted"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                                <span class="visually-hidden">New alerts</span>
-                            </span>
+                            @if (productosBajoStock > 0)
+                            {
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-light" style="font-size: 0.65rem;">
+                                    @productosBajoStock
+                                    <span class="visually-hidden">Alertas</span>
+                                </span>
+                            }
                         </a>
 
                         <div class="dropdown">
@@ -145,12 +153,9 @@
                                 <li>
                                     <div class="px-3 py-2">
                                         <p class="mb-0 fw-bold text-dark">@(User.Identity.IsAuthenticated ? User.Identity.Name : "Usuario")</p>
-                                        <small class="text-muted">Administrador</small>
+                                        <small class="text-muted">@(User.IsInRole("Administrador") ? "Administrador" : "Empleado")</small>
                                     </div>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2" href="#"><i class="bi bi-person me-2 text-muted"></i> Mi Perfil</a></li>
-                                <li><a class="dropdown-item py-2" href="#"><i class="bi bi-gear me-2 text-muted"></i> Configuración</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="@Url.Action("Logout", "Account")" method="post" id="logoutForm">

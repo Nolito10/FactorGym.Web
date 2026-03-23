@@ -61,11 +61,23 @@ namespace FactorFitGym.Web.Controllers
         // POST: Clientes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nombre,Apellido,Telefono,Genero,PinAcceso")] Cliente cliente)
+        public async Task<IActionResult> Create([Bind("Id,Nombre,Apellido,Telefono,Genero")] Cliente cliente)
         {
             if (ModelState.IsValid)
             {
                 cliente.IsActivo = true; // Set active by default
+                
+                // Generar PIN único (4 dígitos)
+                string nuevoPin;
+                bool exists;
+                var rnd = new Random();
+                do
+                {
+                    nuevoPin = rnd.Next(1000, 10000).ToString();
+                    exists = await _context.Clientes.AnyAsync(c => c.PinAcceso == nuevoPin);
+                } while (exists);
+                cliente.PinAcceso = nuevoPin;
+
                 _context.Add(cliente);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "¡Cliente agregado con éxito!";
@@ -93,7 +105,7 @@ namespace FactorFitGym.Web.Controllers
         // POST: Clientes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Apellido,Telefono,Genero,PinAcceso")] Cliente cliente)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Apellido,Telefono,Genero")] Cliente cliente)
         {
             if (id != cliente.Id)
             {
@@ -104,10 +116,11 @@ namespace FactorFitGym.Web.Controllers
             {
                 try
                 {
-                    // Mantener el estado activo anterior al actualizar
+                    // Mantener el estado activo y el PIN anterior al actualizar
                     var existingCliente = await _context.Clientes.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
                     if(existingCliente != null) {
                         cliente.IsActivo = existingCliente.IsActivo;
+                        cliente.PinAcceso = existingCliente.PinAcceso;
                     }
                     else {
                         cliente.IsActivo = true;

@@ -22,6 +22,23 @@ body {
     background-color: var(--main-bg) !important;
 }
 
+/* Serious color palette for dashboard cards */
+.border-factor-dark { border-left-color: var(--factor-dark) !important; }
+.text-factor-dark { color: var(--factor-dark) !important; }
+.bg-factor-dark-opacity { background-color: rgba(27, 43, 54, 0.1) !important; }
+
+.border-factor-slate { border-left-color: #64748b !important; }
+.text-factor-slate { color: #64748b !important; }
+.bg-factor-slate-opacity { background-color: rgba(100, 116, 139, 0.1) !important; }
+
+.border-factor-emerald { border-left-color: #059669 !important; }
+.text-factor-emerald { color: #059669 !important; }
+.bg-factor-emerald-opacity { background-color: rgba(5, 150, 105, 0.1) !important; }
+
+.border-factor-rose { border-left-color: #e11d48 !important; }
+.text-factor-rose { color: #e11d48 !important; }
+.bg-factor-rose-opacity { background-color: rgba(225, 29, 72, 0.1) !important; }
+
 .text-brand { color: var(--brand-blue) !important; }
 
 .btn-brand {

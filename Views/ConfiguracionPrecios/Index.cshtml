@@ -1,0 +1,55 @@
+@model IEnumerable<FactorFitGym.Web.Models.ConfiguracionPrecio>
+
+@{
+    ViewData["Title"] = "Gestión de Precios";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-dark mb-0">Gestión de Precios</h2>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 20px;">
+    <div class="card-body p-4 p-md-5">
+        
+        @if(TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show rounded-pill px-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4 rounded-start">Servicio / Plan</th>
+                      
+                        <th>Precio Actual</th>
+                        <th class="text-end rounded-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">
+                                @Html.DisplayFor(modelItem => item.Nombre)
+                            </td>
+                          
+                            <td class="fw-bold text-success">
+                                C$@Html.DisplayFor(modelItem => item.Precio)
+                            </td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm">
+                                    <i class="bi bi-pencil-square me-1"></i> Editar Precio
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

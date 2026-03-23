@@ -59,10 +59,10 @@
                                     <td class="pt-2">
                                         <span class="fw-bold text-dark">@detalle.Cantidad&nbsp;x</span>&nbsp; 
                                         <span class="text-dark">@(detalle.Producto?.Nombre ?? "Producto desconocido")</span>
-                                        <div class="text-muted small">Precio Unit: @detalle.PrecioUnitario.ToString("C")</div>
+                                        <div class="text-muted small">Precio Unit: C$@detalle.PrecioUnitario.ToString("N2")</div>
                                     </td>
                                     <td class="text-end fw-bold text-dark pt-2 align-middle">
-                                        @((detalle.Cantidad * detalle.PrecioUnitario).ToString("C"))
+                                        C$@((detalle.Cantidad * detalle.PrecioUnitario).ToString("N2"))
                                     </td>
                                 </tr>
                             }
@@ -78,7 +78,7 @@
                     <hr class="border-dashed my-2" />
                     <div class="d-flex justify-content-between align-items-end mt-1">
                         <span class="text-dark text-uppercase fw-bolder">Total Pagado:</span>
-                        <h3 class="text-brand fw-bolder mb-0">@Model.Total.ToString("C")</h3>
+                        <h3 class="text-brand fw-bolder mb-0">C$@Model.Total.ToString("N2")</h3>
                     </div>
                 </div>
 

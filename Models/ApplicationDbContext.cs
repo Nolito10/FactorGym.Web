@@ -18,6 +18,7 @@ namespace FactorFitGym.Web.Models
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetallesVenta { get; set; }
+        public DbSet<ConfiguracionPrecio> ConfiguracionPrecios { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -49,7 +49,7 @@
                         <span class="badge bg-light text-secondary rounded-pill border px-3">@item.Categoria</span>
                     </td>
                     <td class="py-3" style="width: 15%;">
-                        <h5 class="mb-0 fw-bold text-danger">-@item.Monto.ToString("C")</h5>
+                        <h5 class="mb-0 fw-bold text-danger">-C$@item.Monto.ToString("N2")</h5>
                     </td>
                     <td class="py-3 text-center text-muted small" style="width: 15%;">
                         @(string.IsNullOrEmpty(item.Referencia) ? "N/A" : item.Referencia)
