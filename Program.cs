@@ -46,8 +46,18 @@ if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("mysq
     }
 }
 
+ServerVersion serverVersion;
+try
+{
+    serverVersion = ServerVersion.AutoDetect(connectionString);
+}
+catch
+{
+    serverVersion = new MySqlServerVersion(new Version(8, 0, 36));
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(connectionString, serverVersion));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -59,7 +69,21 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
-// Aplicar migraciones pendientes de base de datos automáticamente al iniciar
+// Endpoint de diagnóstico para aplicar migraciones desde el navegador si es necesario
+app.MapGet("/_migrate", async (ApplicationDbContext db) =>
+{
+    try
+    {
+        await db.Database.MigrateAsync();
+        return Results.Ok(new { status = "success", message = "¡Migraciones aplicadas con éxito! Las tablas han sido creadas en MySQL." });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message + (ex.InnerException != null ? " -> " + ex.InnerException.Message : ""), title: "Error al migrar");
+    }
+});
+
+// Aplicar migraciones de base de datos automáticamente al iniciar
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -67,16 +91,13 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        if (context.Database.GetPendingMigrations().Any())
-        {
-            logger.LogInformation("Aplicando migraciones pendientes de base de datos...");
-            context.Database.Migrate();
-            logger.LogInformation("Migraciones aplicadas exitosamente.");
-        }
+        logger.LogInformation("Aplicando migraciones de base de datos en inicio...");
+        context.Database.Migrate();
+        logger.LogInformation("Migraciones aplicadas exitosamente.");
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Ocurrió un error al aplicar las migraciones de la base de datos.");
+        logger.LogError(ex, "Aviso: No se pudieron aplicar migraciones automáticas al inicio: {Message}", ex.Message);
     }
 }
 
