@@ -15,17 +15,30 @@ builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Soporte automático para variables inyectadas por Railway (MYSQL_PRIVATE_URL, MYSQL_URL, DATABASE_URL)
-var envDbUrl = Environment.GetEnvironmentVariable("MYSQL_PRIVATE_URL")
-            ?? Environment.GetEnvironmentVariable("MYSQL_URL")
-            ?? Environment.GetEnvironmentVariable("DATABASE_URL");
-
-if (!string.IsNullOrEmpty(envDbUrl) && (string.IsNullOrEmpty(connectionString) || connectionString.Contains("127.0.0.1") || connectionString.StartsWith("mysql://", StringComparison.OrdinalIgnoreCase)))
+// 1. Soporte si Railway inyectó variables individuales (MYSQLHOST, MYSQLUSER, etc.)
+var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST");
+if (!string.IsNullOrEmpty(mysqlHost))
 {
-    connectionString = envDbUrl;
+    var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT") ?? "3306";
+    var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER") ?? "root";
+    var mysqlPass = Environment.GetEnvironmentVariable("MYSQLPASSWORD") ?? "";
+    var mysqlDb = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? Environment.GetEnvironmentVariable("MYSQL_DATABASE") ?? "railway";
+    connectionString = $"Server={mysqlHost};Port={mysqlPort};Database={mysqlDb};User={mysqlUser};Password={mysqlPass};AllowPublicKeyRetrieval=True;SslMode=Preferred;";
+}
+else
+{
+    // 2. Soporte si Railway inyectó una URL completa (MYSQL_PRIVATE_URL, MYSQL_URL, DATABASE_URL)
+    var envDbUrl = Environment.GetEnvironmentVariable("MYSQL_PRIVATE_URL")
+                ?? Environment.GetEnvironmentVariable("MYSQL_URL")
+                ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+
+    if (!string.IsNullOrEmpty(envDbUrl) && (string.IsNullOrEmpty(connectionString) || connectionString.Contains("127.0.0.1") || connectionString.StartsWith("mysql://", StringComparison.OrdinalIgnoreCase)))
+    {
+        connectionString = envDbUrl;
+    }
 }
 
-// Convertir automáticamente de formato URL (mysql://user:pass@host:port/db) al formato que espera MySQL Pomelo
+// 3. Convertir automáticamente de formato URL (mysql://user:pass@host:port/db) al formato que espera MySQL Pomelo
 if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("mysql://", StringComparison.OrdinalIgnoreCase))
 {
     try
@@ -74,12 +87,36 @@ app.MapGet("/_migrate", async (ApplicationDbContext db) =>
 {
     try
     {
+        var conn = db.Database.GetDbConnection();
         await db.Database.MigrateAsync();
-        return Results.Ok(new { status = "success", message = "¡Migraciones aplicadas con éxito! Las tablas han sido creadas en MySQL." });
+
+        if (!await db.Usuarios.AnyAsync())
+        {
+            db.Usuarios.Add(new Usuario
+            {
+                Username = "admin",
+                Nombre = "Administrador",
+                Apellido = "Sistema",
+                Email = "admin@factorgym.com",
+                PasswordHash = PasswordHasher.Hash("admin123"),
+                Rol = "Administrador",
+                FechaRegistro = DateTime.UtcNow
+            });
+            await db.SaveChangesAsync();
+        }
+
+        return Results.Ok(new 
+        { 
+            status = "success", 
+            message = "¡Migraciones aplicadas con éxito! Tablas y usuario inicial (admin / admin123) creados en MySQL.",
+            hostConectado = conn.DataSource,
+            baseDeDatos = conn.Database
+        });
     }
     catch (Exception ex)
     {
-        return Results.Problem(detail: ex.Message + (ex.InnerException != null ? " -> " + ex.InnerException.Message : ""), title: "Error al migrar");
+        var conn = db.Database.GetDbConnection();
+        return Results.Problem(detail: $"{ex.Message} -> {ex.InnerException?.Message} | Host intentado: {conn.DataSource}, DB: {conn.Database}", title: "Error al migrar");
     }
 });
 
@@ -94,6 +131,22 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Aplicando migraciones de base de datos en inicio...");
         context.Database.Migrate();
         logger.LogInformation("Migraciones aplicadas exitosamente.");
+
+        if (!context.Usuarios.Any())
+        {
+            context.Usuarios.Add(new Usuario
+            {
+                Username = "admin",
+                Nombre = "Administrador",
+                Apellido = "Sistema",
+                Email = "admin@factorgym.com",
+                PasswordHash = PasswordHasher.Hash("admin123"),
+                Rol = "Administrador",
+                FechaRegistro = DateTime.UtcNow
+            });
+            context.SaveChanges();
+            logger.LogInformation("Usuario inicial 'admin' creado exitosamente.");
+        }
     }
     catch (Exception ex)
     {
