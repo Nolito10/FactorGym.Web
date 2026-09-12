@@ -28,25 +28,36 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
-// Aplicar migraciones y crear usuario inicial al arrancar
+// Aplicar migraciones y crear usuario inicial al arrancar (protegido contra crash)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-
-    if (!db.Usuarios.Any())
+    try
     {
-        db.Usuarios.Add(new Usuario
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+
+        if (!db.Usuarios.Any())
         {
-            Username = "admin",
-            Nombre = "Administrador",
-            Apellido = "Sistema",
-            Email = "admin@factorgym.com",
-            PasswordHash = PasswordHasher.Hash("admin123"),
-            Rol = "Administrador",
-            FechaRegistro = DateTime.UtcNow
-        });
-        db.SaveChanges();
+            db.Usuarios.Add(new Usuario
+            {
+                Username = "admin",
+                Nombre = "Administrador",
+                Apellido = "Sistema",
+                Email = "admin@factorgym.com",
+                PasswordHash = PasswordHasher.Hash("admin123"),
+                Rol = "Administrador",
+                FechaRegistro = DateTime.UtcNow
+            });
+            db.SaveChanges();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[AVISO MIGRACIÓN]: {ex.Message}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"[AVISO MIGRACIÓN DETALLE]: {ex.InnerException.Message}");
+        }
     }
 }
 
