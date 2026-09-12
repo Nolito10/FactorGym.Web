@@ -120,6 +120,27 @@ app.MapGet("/_migrate", async (ApplicationDbContext db) =>
     }
 });
 
+// Endpoint de diagnóstico para ver qué variables de entorno tiene Railway activas
+app.MapGet("/_env", () =>
+{
+    var envs = Environment.GetEnvironmentVariables();
+    var result = new Dictionary<string, string>();
+    foreach (System.Collections.DictionaryEntry entry in envs)
+    {
+        var key = entry.Key?.ToString() ?? "";
+        var val = entry.Value?.ToString() ?? "";
+        if (key.Contains("PASS", StringComparison.OrdinalIgnoreCase) || key.Contains("SECRET", StringComparison.OrdinalIgnoreCase) || key.Contains("KEY", StringComparison.OrdinalIgnoreCase))
+        {
+            result[key] = "****** (oculto)";
+        }
+        else
+        {
+            result[key] = val;
+        }
+    }
+    return Results.Ok(result);
+});
+
 // Aplicar migraciones de base de datos automáticamente al iniciar
 using (var scope = app.Services.CreateScope())
 {
