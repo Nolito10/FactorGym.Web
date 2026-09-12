@@ -15,6 +15,37 @@ builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// Soporte automático para variables inyectadas por Railway (MYSQL_PRIVATE_URL, MYSQL_URL, DATABASE_URL)
+var envDbUrl = Environment.GetEnvironmentVariable("MYSQL_PRIVATE_URL")
+            ?? Environment.GetEnvironmentVariable("MYSQL_URL")
+            ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+
+if (!string.IsNullOrEmpty(envDbUrl) && (string.IsNullOrEmpty(connectionString) || connectionString.Contains("127.0.0.1") || connectionString.StartsWith("mysql://", StringComparison.OrdinalIgnoreCase)))
+{
+    connectionString = envDbUrl;
+}
+
+// Convertir automáticamente de formato URL (mysql://user:pass@host:port/db) al formato que espera MySQL Pomelo
+if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("mysql://", StringComparison.OrdinalIgnoreCase))
+{
+    try
+    {
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':');
+        var user = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var host = uri.Host;
+        var dbPort = uri.Port > 0 ? uri.Port : 3306;
+        var database = uri.AbsolutePath.TrimStart('/');
+
+        connectionString = $"Server={host};Port={dbPort};Database={database};User={user};Password={password};AllowPublicKeyRetrieval=True;SslMode=Preferred;";
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error parseando URL de base de datos: {ex.Message}");
+    }
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
