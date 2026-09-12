@@ -28,6 +28,28 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
+// Aplicar migraciones y crear usuario inicial al arrancar
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+
+    if (!db.Usuarios.Any())
+    {
+        db.Usuarios.Add(new Usuario
+        {
+            Username = "admin",
+            Nombre = "Administrador",
+            Apellido = "Sistema",
+            Email = "admin@factorgym.com",
+            PasswordHash = PasswordHasher.Hash("admin123"),
+            Rol = "Administrador",
+            FechaRegistro = DateTime.UtcNow
+        });
+        db.SaveChanges();
+    }
+}
+
 app.MapGet("/favicon.ico", () => Results.Redirect("/img/Logo.png"));
 
 app.UseHttpsRedirection();
