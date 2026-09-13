@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FactorGym.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4b5947c7d3642c57767bb64746e7dd5e39dc6393")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+904be011f091519fc3cb253cdd9519ec8983175a")]
 [assembly: System.Reflection.AssemblyProductAttribute("FactorGym.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FactorGym.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

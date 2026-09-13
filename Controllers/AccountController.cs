@@ -34,32 +34,39 @@ namespace FactorFitGym.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var hashedPassword = PasswordHasher.Hash(model.Password);
-                var usuario = await _context.Usuarios
-                    .FirstOrDefaultAsync(u => u.Username == model.Username && (u.PasswordHash == model.Password || u.PasswordHash == hashedPassword));
-
-                if (usuario != null)
+                try
                 {
-                    var claims = new List<Claim>
+                    var hashedPassword = PasswordHasher.Hash(model.Password);
+                    var usuario = await _context.Usuarios
+                        .FirstOrDefaultAsync(u => u.Username == model.Username && (u.PasswordHash == model.Password || u.PasswordHash == hashedPassword));
+
+                    if (usuario != null)
                     {
-                        new Claim(ClaimTypes.Name, usuario.Username),
-                        new Claim("NombreCompleto", $"{usuario.Nombre} {usuario.Apellido}"),
-                        new Claim(ClaimTypes.Role, usuario.Rol)
-                    };
+                        var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.Name, usuario.Username),
+                            new Claim("NombreCompleto", $"{usuario.Nombre} {usuario.Apellido}"),
+                            new Claim(ClaimTypes.Role, usuario.Rol)
+                        };
 
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-                    if (usuario.Rol == "Cliente")
-                    {
-                        return RedirectToAction("Index", "Asistencias");
+                        if (usuario.Rol == "Cliente")
+                        {
+                            return RedirectToAction("Index", "Asistencias");
+                        }
+
+                        return RedirectToAction("Index", "Home");
                     }
 
-                    return RedirectToAction("Index", "Home");
+                    ModelState.AddModelError(string.Empty, "Intento de inicio de sesión no válido. Verifica usuario y contraseña.");
                 }
-
-                ModelState.AddModelError(string.Empty, "Intento de inicio de sesión no válido.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, $"Error de base de datos: {ex.Message}");
+                }
             }
 
             return View(model);

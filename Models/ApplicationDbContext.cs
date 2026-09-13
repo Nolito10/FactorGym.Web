@@ -24,6 +24,18 @@ namespace FactorFitGym.Web.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Usuario>().HasData(new Usuario
+            {
+                Id = 1,
+                Username = "admin",
+                Nombre = "Administrador",
+                Apellido = "Sistema",
+                Email = "admin@factorgym.com",
+                PasswordHash = "JAvlGPq9JyTdtvBO6x2llnRI1+gxwIyPqCKAn3THIKk=",
+                Rol = "Administrador",
+                FechaRegistro = new System.DateTime(2026, 1, 1, 0, 0, 0, System.DateTimeKind.Utc)
+            });
         }
     }
 }
