@@ -42,14 +42,16 @@ namespace FactorFitGym.Web.Controllers
 
                     if (usuario != null)
                     {
+                        var rol = usuario.Rol?.Trim() ?? "Administrador";
                         var claims = new List<Claim>
                         {
                             new Claim(ClaimTypes.Name, usuario.Username),
                             new Claim("NombreCompleto", $"{usuario.Nombre} {usuario.Apellido}"),
-                            new Claim(ClaimTypes.Role, usuario.Rol)
+                            new Claim(ClaimTypes.Role, rol),
+                            new Claim("role", rol)
                         };
 
-                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
 
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
