@@ -2,7 +2,17 @@ using FactorFitGym.Web.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
+using Microsoft.AspNetCore.HttpOverrides;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Soporte para proxy HTTPS en Railway / Render
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Soporte para puerto en la nube (Railway / Render)
 var port = Environment.GetEnvironmentVariable("PORT");
@@ -24,9 +34,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Account/Login";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.AccessDeniedPath = "/Account/AccessDenied";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 // Aplicar migraciones y crear usuario inicial al arrancar (protegido contra crash)
 using (var scope = app.Services.CreateScope())
@@ -63,7 +77,6 @@ using (var scope = app.Services.CreateScope())
 
 app.MapGet("/favicon.ico", () => Results.Redirect("/img/Logo.png"));
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();

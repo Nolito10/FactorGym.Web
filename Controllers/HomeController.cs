@@ -29,19 +29,19 @@ public class HomeController : Controller
         // Ingresos por Membresías (Pagos del mes)
         var ingresosPagos = await _context.Pagos
             .Where(p => p.FechaPago >= startOfMonth && p.FechaPago <= endOfMonth)
-            .SumAsync(p => p.Monto);
+            .SumAsync(p => (decimal?)p.Monto) ?? 0m;
 
         // Ingresos por Tienda (Ventas del mes)
         var ingresosTienda = await _context.Ventas
             .Where(v => v.Fecha >= startOfMonth && v.Fecha <= endOfMonth)
-            .SumAsync(v => v.Total);
+            .SumAsync(v => (decimal?)v.Total) ?? 0m;
 
         var ingresosTotales = ingresosPagos + ingresosTienda;
 
         // Egresos (Gastos del mes)
         var egresos = await _context.Gastos
             .Where(g => g.Fecha >= startOfMonth && g.Fecha <= endOfMonth)
-            .SumAsync(g => g.Monto);
+            .SumAsync(g => (decimal?)g.Monto) ?? 0m;
 
         // Visitas de Hoy
         var visitasHoy = await _context.Asistencias
