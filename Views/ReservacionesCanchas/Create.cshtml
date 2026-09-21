@@ -6,8 +6,8 @@
     decimal precioPorHora = ViewBag.PrecioCancha ?? 20.00m;
 }
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/lib/flatpickr/themes/airbnb.css" asp-append-version="true" />
 
 <div class="d-flex align-items-center justify-content-center py-2" style="min-height: calc(100vh - 140px);">
     <div class="w-100" style="max-width: 950px;">
@@ -158,8 +158,8 @@
 </style>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="~/lib/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/flatpickr/l10n/es.js" asp-append-version="true"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

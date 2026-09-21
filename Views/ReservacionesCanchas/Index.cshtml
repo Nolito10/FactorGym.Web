@@ -226,12 +226,12 @@
     .reserva-row:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
 </style>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/lib/flatpickr/themes/airbnb.css" asp-append-version="true" />
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="~/lib/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/flatpickr/l10n/es.js" asp-append-version="true"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

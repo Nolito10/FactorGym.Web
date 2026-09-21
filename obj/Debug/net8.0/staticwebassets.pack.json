@@ -8465,6 +8465,22 @@
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map"
     },
     {
+      "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\lib\\flatpickr\\flatpickr.min.css",
+      "PackagePath": "staticwebassets\\lib\\flatpickr\\flatpickr.min.css"
+    },
+    {
+      "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\lib\\flatpickr\\flatpickr.min.js",
+      "PackagePath": "staticwebassets\\lib\\flatpickr\\flatpickr.min.js"
+    },
+    {
+      "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\lib\\flatpickr\\l10n\\es.js",
+      "PackagePath": "staticwebassets\\lib\\flatpickr\\l10n\\es.js"
+    },
+    {
+      "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\lib\\flatpickr\\themes\\airbnb.css",
+      "PackagePath": "staticwebassets\\lib\\flatpickr\\themes\\airbnb.css"
+    },
+    {
       "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
       "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
     },

@@ -3,10 +3,19 @@
     Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
 }
 
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/lib/flatpickr/themes/airbnb.css" asp-append-version="true" />
+
+<style>
+    .flatpickr-input[readonly] {
+        background-color: #f8f9fa !important;
+        cursor: pointer;
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-5 mt-3 px-2">
     <div>
-        <h2 class="fw-bold text-dark mb-1">Generador de Reportes Analíticos</h2>
-        <p class="text-muted mb-0">Exporta la información de forma estructurada en formato Excel para la toma de decisiones.</p>
+        <h2 class="fw-bold text-dark mb-0">Generador de Reportes Analíticos</h2>
     </div>
 </div>
 
@@ -36,11 +45,11 @@
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-bold text-muted">Fecha Inicio</label>
-                            <input type="date" name="fechaInicio" class="form-control rounded-pill bg-light border-0" required />
+                            <input type="text" name="fechaInicio" class="form-control rounded-pill bg-light border-0 fp-inicio text-center fw-semibold text-dark shadow-none" placeholder="dd/mm/aaaa" required />
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold text-muted">Fecha Fin</label>
-                            <input type="date" name="fechaFin" class="form-control rounded-pill bg-light border-0" required />
+                            <input type="text" name="fechaFin" class="form-control rounded-pill bg-light border-0 fp-fin text-center fw-semibold text-dark shadow-none" placeholder="dd/mm/aaaa" required />
                         </div>
                     </div>
                     <button type="submit" class="btn btn-brand w-100 rounded-pill fw-bold" style="height: 45px;">
@@ -65,11 +74,11 @@
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-bold text-muted">Fecha Inicio</label>
-                            <input type="date" name="fechaInicio" class="form-control rounded-pill bg-light border-0" required />
+                            <input type="text" name="fechaInicio" class="form-control rounded-pill bg-light border-0 fp-inicio text-center fw-semibold text-dark shadow-none" placeholder="dd/mm/aaaa" required />
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold text-muted">Fecha Fin</label>
-                            <input type="date" name="fechaFin" class="form-control rounded-pill bg-light border-0" required />
+                            <input type="text" name="fechaFin" class="form-control rounded-pill bg-light border-0 fp-fin text-center fw-semibold text-dark shadow-none" placeholder="dd/mm/aaaa" required />
                         </div>
                     </div>
                     <button type="submit" class="btn btn-brand w-100 rounded-pill fw-bold" style="height: 45px;">
@@ -94,11 +103,11 @@
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-bold text-muted">Fecha Inicio</label>
-                            <input type="date" name="fechaInicio" class="form-control rounded-pill bg-light border-0" required />
+                            <input type="text" name="fechaInicio" class="form-control rounded-pill bg-light border-0 fp-inicio text-center fw-semibold text-dark shadow-none" placeholder="dd/mm/aaaa" required />
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold text-muted">Fecha Fin</label>
-                            <input type="date" name="fechaFin" class="form-control rounded-pill bg-light border-0" required />
+                            <input type="text" name="fechaFin" class="form-control rounded-pill bg-light border-0 fp-fin text-center fw-semibold text-dark shadow-none" placeholder="dd/mm/aaaa" required />
                         </div>
                     </div>
                     <button type="submit" class="btn btn-brand w-100 rounded-pill fw-bold" style="height: 45px;">
@@ -112,22 +121,33 @@
 </div>
 
 @section Scripts {
+    <script src="~/lib/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/flatpickr/l10n/es.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Auto-fill dates with current month (1st day to today)
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            
-            const formatDate = (date) => {
-                const tzOffset = date.getTimezoneOffset() * 60000;
-                return new Date(date.getTime() - tzOffset).toISOString().split('T')[0];
-            };
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr.localize(flatpickr.l10ns.es);
 
-            const inputsInicio = document.querySelectorAll('input[name="fechaInicio"]');
-            const inputsFin = document.querySelectorAll('input[name="fechaFin"]');
+                const today = new Date();
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
-            inputsInicio.forEach(el => el.value = formatDate(firstDay));
-            inputsFin.forEach(el => el.value = formatDate(today));
+                const fpConfig = {
+                    locale: 'es',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    dateFormat: 'Y-m-d',
+                    altInputClass: 'form-control rounded-pill bg-light border-0 text-center fw-semibold text-dark shadow-none',
+                    disableMobile: true
+                };
+
+                document.querySelectorAll('.fp-inicio').forEach(el => {
+                    flatpickr(el, { ...fpConfig, defaultDate: firstDay });
+                });
+
+                document.querySelectorAll('.fp-fin').forEach(el => {
+                    flatpickr(el, { ...fpConfig, defaultDate: today });
+                });
+            }
         });
     </script>
 }
