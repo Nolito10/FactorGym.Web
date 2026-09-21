@@ -1,239 +1,297 @@
 @model FactorFitGym.Web.Models.ReservacionCancha
 
 @{
-    ViewData["Title"] = "Nueva Reservación";
+    ViewData["Title"] = "Reservaciones";
     Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    decimal precioPorHora = ViewBag.PrecioCancha ?? 20.00m;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-dark mb-0">Agendar Espacio (Cancha Multiusos)</h2>
-</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
 
-<div class="row w-100 justify-content-center m-0">
-    <div class="col-md-9 col-lg-8 px-0">
-        <div class="card border-0 shadow-lg" style="border-radius: 25px; overflow: hidden;">
-            <div class="bg-brand-light py-4 text-center">
-                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
-                    <i class="bi bi-calendar-plus-fill text-brand" style="font-size: 1.8rem;"></i>
+<div class="d-flex align-items-center justify-content-center py-2" style="min-height: calc(100vh - 140px);">
+    <div class="w-100" style="max-width: 950px;">
+        
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <!-- Encabezado Centrado sin texto innecesario ni botón volver -->
+                <div class="py-3 px-4 text-center border-bottom bg-white">
+                    <h3 class="fw-bold text-dark mb-0">Reservaciones</h3>
                 </div>
-                <h5 class="fw-bold text-dark mb-0">Bloquear Horario</h5>
-                <p class="text-muted small mt-2 mb-0 px-4">Reserva la cancha para uso exclusivo o eventos.</p>
+
+                <!-- Formulario -->
+                <div class="card-body p-4 p-md-5">
+                    <form id="formCreate" action="@Url.Action("Create", "ReservacionesCanchas")" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="MontoTotal" id="hiddenMontoTotal" value="@precioPorHora" />
+
+                        <div class="row g-4">
+                            <!-- Cliente / Responsable -->
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Cliente / Responsable</label>
+                                <div class="input-group rounded-pill overflow-hidden border bg-light shadow-xs" style="height: 48px;">
+                                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                        <i class="bi bi-person-fill"></i>
+                                    </span>
+                                    <input asp-for="NombreCliente" type="text" class="form-control bg-transparent border-0 fw-semibold text-dark" placeholder="Nombre completo..." required>
+                                </div>
+                            </div>
+
+                            <!-- Actividad / Deporte -->
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Actividad / Deporte</label>
+                                <div class="input-group rounded-pill overflow-hidden border bg-light shadow-xs" style="height: 48px;">
+                                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                        <i class="bi bi-activity"></i>
+                                    </span>
+                                    <select asp-for="TipoUso" id="TipoUso" class="form-select bg-transparent border-0 fw-semibold text-dark" required style="cursor: pointer;">
+                                        <option value="Fútbol">Fútbol Sala</option>
+                                        <option value="Básquetbol">Básquetbol</option>
+                                        <option value="Voleibol">Voleibol</option>
+                                        <option value="Evento">Evento / Exclusivo</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Fecha y Hora de Inicio (Flatpickr) -->
+                            <div class="col-12 col-md-6">
+                                <label id="labelFecha" class="form-label fw-bold text-secondary small text-uppercase mb-1">Fecha y Hora de Inicio</label>
+                                <div class="input-group rounded-pill overflow-hidden border border-primary border-opacity-25 bg-white shadow-xs" style="height: 48px;">
+                                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                        <i class="bi bi-calendar-event-fill"></i>
+                                    </span>
+                                    <input type="text" id="fechaInicioPicker" name="FechaHoraInicio" class="form-control bg-transparent border-0 fw-bold text-dark" placeholder="Selecciona fecha..." required>
+                                </div>
+                            </div>
+
+                            <!-- Tiempo de Reserva -->
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Tiempo de Reserva</label>
+                                
+                                <!-- Opciones por hora para deportes -->
+                                <div id="contenedorDuracionHoras" class="input-group rounded-pill overflow-hidden border border-primary border-opacity-25 bg-white shadow-xs" style="height: 48px;">
+                                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-brand">
+                                        <i class="bi bi-hourglass-split"></i>
+                                    </span>
+                                    <select id="duracionHoras" name="duracionHoras" class="form-select bg-transparent border-0 fw-bold text-dark" style="cursor: pointer;">
+                                        <option value="1">1 Hora (60 min)</option>
+                                        <option value="1.5">1 Hora y 30 min (90 min)</option>
+                                        <option value="2">2 Horas (120 min)</option>
+                                        <option value="2.5">2 Horas y 30 min (150 min)</option>
+                                        <option value="3">3 Horas (180 min)</option>
+                                        <option value="4">4 Horas (240 min)</option>
+                                        <option value="5">5 Horas (300 min)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Día Completo para Evento Exclusivo -->
+                                <div id="contenedorDuracionEvento" class="d-none">
+                                    <div class="rounded-pill bg-light border px-3 d-flex align-items-center text-dark fw-bold" style="height: 48px;">
+                                        <i class="bi bi-sun-fill text-warning me-2 fs-5"></i>
+                                        <span>Día Completo (Evento Exclusivo)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Método de Cobro -->
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Método de Cobro</label>
+                                <div class="input-group rounded-pill overflow-hidden border bg-light shadow-xs" style="height: 48px;">
+                                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                        <i class="bi bi-credit-card-2-front-fill"></i>
+                                    </span>
+                                    <select asp-for="MetodoPago" id="MetodoPago" class="form-select bg-transparent border-0 fw-semibold text-dark" required style="cursor: pointer;">
+                                        <option value="Efectivo" selected>Efectivo</option>
+                                        <option value="Transferencia">Transferencia Bancaria</option>
+                                        <option value="Tarjeta">Tarjeta Débito / Crédito</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Monto Total a Cobrar -->
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Monto Total a Cobrar (C$)</label>
+                                
+                                <!-- Tarifa Calculada para Deportes (Cancha por hora) -->
+                                <div id="contenedorCobroAuto">
+                                    <div class="px-3 rounded-pill d-flex align-items-center justify-content-between border border-success border-opacity-50" style="background-color: #F0FDF4; height: 48px;">
+                                        <div class="d-flex align-items-center text-success">
+                                            <i class="bi bi-cash-stack fs-5 me-2"></i>
+                                            <small class="fw-semibold text-muted" id="formulaLabel">1 hr × C$@precioPorHora.ToString("N2")</small>
+                                        </div>
+                                        <div>
+                                            <span class="fs-5 fw-bold text-success" id="displayMontoTotal">C$ @precioPorHora.ToString("N2")</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Precio Acordado para Evento Exclusivo -->
+                                <div id="contenedorCobroEvento" class="d-none">
+                                    <div class="input-group rounded-pill overflow-hidden border border-success bg-white shadow-xs" style="height: 48px;">
+                                        <span class="input-group-text bg-success bg-opacity-10 border-0 ps-3 pe-2 text-success fw-bold">
+                                            C$
+                                        </span>
+                                        <input type="number" step="0.01" min="1" id="inputMontoEvento" class="form-control bg-transparent border-0 fw-bold text-dark" placeholder="Precio acordado (C$)...">
+                                    </div>
+                                    <small class="text-muted d-block ps-2 mt-1" style="font-size: 0.75rem;">
+                                        <i class="bi bi-info-circle me-1"></i> Precio acordado cliente - propietario.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Botón de Envío: Más pequeño y conciso -->
+                            <div class="col-12 text-center mt-3 pt-2">
+                                <button type="submit" id="btnSubmit" class="btn btn-brand rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center justify-content-center">
+                                    <i class="bi bi-check2 me-1"></i> Confirmar
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
             </div>
-            
-            <div class="card-body p-5 bg-white">
-                <form id="formCreate" action="@Url.Action("Create", "ReservacionesCanchas")" method="post">
-                    @Html.AntiForgeryToken()
 
-                    <div class="row g-4">
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Nombre del Cliente / Responsable</label>
-                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-light">
-                                <span class="input-group-text bg-transparent border-0 ps-4 pe-2">
-                                    <i class="bi bi-person-fill text-primary"></i>
-                                </span>
-                                <input asp-for="NombreCliente" type="text" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark" placeholder="Escribe el nombre del responsable..." required style="font-size: 1rem;">
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Tipo de Actividad</label>
-                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-light">
-                                <span class="input-group-text bg-transparent border-0 ps-4 pe-2">
-                                    <i class="bi bi-activity text-primary"></i>
-                                </span>
-                                <select asp-for="TipoUso" id="TipoUso" class="form-select form-select-lg bg-transparent border-0 fw-bold px-2 text-dark" required style="cursor: pointer; font-size: 1rem;">
-                                    <option value="Básquetbol">Básquetbol <i class="bi bi-dribbble"></i></option>
-                                    <option value="Voleibol">Voleibol</option>
-                                    <option value="Fútbol">Fútbol Sala</option>
-                                    <option value="Evento">Evento / Exclusivo</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Monto del Pago Reservación (C$)</label>
-                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-success border-opacity-25">
-                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
-                                    <i class="bi bi-cash-stack text-success"></i>
-                                </span>
-                                <input asp-for="MontoTotal" id="MontoTotal" type="number" step="0.01" min="0" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark" placeholder="Ej. 50.00" required>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Fecha y Hora de Inicio</label>
-                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-primary border-opacity-25">
-                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
-                                    <i class="bi bi-clock-fill text-primary"></i>
-                                </span>
-                                <input asp-for="FechaHoraInicio" id="fechaInicio" type="datetime-local" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark" required>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6" id="fechaFinContainer">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Fecha y Hora de Fin</label>
-                            <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-danger border-opacity-25">
-                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
-                                    <i class="bi bi-clock-fill text-danger"></i>
-                                </span>
-                                <input asp-for="FechaHoraFin" id="fechaFin" type="datetime-local" class="form-control form-control-lg bg-transparent border-0 fw-bold px-2 text-dark">
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="mt-5 pt-4 text-center">
-                        <button type="submit" id="btnSubmit" class="btn btn-brand btn-lg rounded-pill px-5 py-3 fw-bold shadow-sm d-inline-flex align-items-center transition-all justify-content-center">
-                            Confirmar Reservación
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
-</div>
+
+<style>
+    .shadow-xs { box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+</style>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // Si hay un error de colisión de servidor, lo mostramos con SweetAlert
             @if(TempData["ErrorMessage"] != null)
             {
                 <text>
                 Swal.fire({
                     icon: 'error',
-                    title: 'No se pudo reservar',
+                    title: 'Atención',
                     text: @Html.Raw(Json.Serialize(TempData["ErrorMessage"])),
-                    confirmButtonText: 'Corregir',
-                    confirmButtonColor: '#ff4d4d',
-                    customClass: { popup: 'rounded-5 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#dc3545',
+                    customClass: { popup: 'rounded-4 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
                 });
                 </text>
             }
 
-            // Defaults: Hoy, a la próxima hora en punto. y dura 1 hora.
-            const fechaIn = document.getElementById('fechaInicio');
-            const fechaFi = document.getElementById('fechaFin');
-            
-            if(!fechaIn.value) {
-                let now = new Date();
-                now.setHours(now.getHours() + 1);
-                now.setMinutes(0);
-                now.setSeconds(0);
-                // Adjust to local ISO string format suitable for datetime-local
-                let tzoffset = now.getTimezoneOffset() * 60000;
-                let localISOTime = (new Date(now - tzoffset)).toISOString().slice(0, 16);
-                fechaIn.value = localISOTime;
+            const tarifaBase = parseFloat("@precioPorHora.ToString(System.Globalization.CultureInfo.InvariantCulture)");
+            const tipoUsoSelect = document.getElementById('TipoUso');
+            const labelFecha = document.getElementById('labelFecha');
+            const duracionSelect = document.getElementById('duracionHoras');
+            const contenedorDuracionHoras = document.getElementById('contenedorDuracionHoras');
+            const contenedorDuracionEvento = document.getElementById('contenedorDuracionEvento');
+            const contenedorCobroAuto = document.getElementById('contenedorCobroAuto');
+            const contenedorCobroEvento = document.getElementById('contenedorCobroEvento');
+            const formulaLabel = document.getElementById('formulaLabel');
+            const displayMontoTotal = document.getElementById('displayMontoTotal');
+            const inputMontoEvento = document.getElementById('inputMontoEvento');
+            const hiddenMontoTotal = document.getElementById('hiddenMontoTotal');
 
-                let end = new Date(now);
-                end.setHours(end.getHours() + 1);
-                let endLocalISOTime = (new Date(end - tzoffset)).toISOString().slice(0, 16);
-                fechaFi.value = endLocalISOTime;
+            // Flatpickr handler
+            let fp = null;
+            function initPicker(isEvento) {
+                if (fp) {
+                    fp.destroy();
+                }
+
+                const defaultDate = new Date();
+                if (!isEvento) {
+                    defaultDate.setMinutes(0, 0, 0);
+                    defaultDate.setHours(defaultDate.getHours() + 1);
+                }
+
+                fp = flatpickr("#fechaInicioPicker", {
+                    enableTime: !isEvento,
+                    dateFormat: isEvento ? "Y-m-d 06:00" : "Y-m-d H:i",
+                    altInput: true,
+                    altFormat: isEvento ? "d/m/Y" : "d/m/Y h:i K",
+                    minDate: "today",
+                    defaultDate: defaultDate,
+                    time_24hr: false,
+                    minuteIncrement: 15,
+                    locale: "es"
+                });
             }
 
-            // Auto-advance Fin when Inicio changes
-            fechaIn.addEventListener('change', function() {
-                if(this.value) {
-                    let start = new Date(this.value);
-                    start.setHours(start.getHours() + 1);
-                    let tzoffset = start.getTimezoneOffset() * 60000;
-                    fechaFi.value = (new Date(start - tzoffset)).toISOString().slice(0, 16);
+            // Actualizar total para deportes
+            function actualizarTotalDeporte() {
+                const horas = parseFloat(duracionSelect.value) || 1;
+                const total = horas * tarifaBase;
+                formulaLabel.textContent = `${horas} hr${horas > 1 ? 's' : ''} × C$${tarifaBase.toFixed(2)}`;
+                displayMontoTotal.textContent = `C$ ${total.toFixed(2)}`;
+                hiddenMontoTotal.value = total.toFixed(2);
+            }
+
+            // Cambiar vista según Tipo de Actividad
+            function toggleTipoUso() {
+                const isEvento = tipoUsoSelect.value === 'Evento';
+
+                if (isEvento) {
+                    labelFecha.textContent = 'Fecha del Evento';
+                    contenedorDuracionHoras.classList.add('d-none');
+                    duracionSelect.disabled = true;
+                    contenedorDuracionEvento.classList.remove('d-none');
+                    contenedorCobroAuto.classList.add('d-none');
+                    contenedorCobroEvento.classList.remove('d-none');
+                    inputMontoEvento.required = true;
+                    hiddenMontoTotal.value = inputMontoEvento.value || '';
+                    initPicker(true);
+                } else {
+                    labelFecha.textContent = 'Fecha y Hora de Inicio';
+                    contenedorDuracionHoras.classList.remove('d-none');
+                    duracionSelect.disabled = false;
+                    contenedorDuracionEvento.classList.add('d-none');
+                    contenedorCobroAuto.classList.remove('d-none');
+                    contenedorCobroEvento.classList.add('d-none');
+                    inputMontoEvento.required = false;
+                    actualizarTotalDeporte();
+                    initPicker(false);
                 }
+            }
+
+            duracionSelect.addEventListener('change', actualizarTotalDeporte);
+            tipoUsoSelect.addEventListener('change', toggleTipoUso);
+
+            inputMontoEvento.addEventListener('input', function () {
+                hiddenMontoTotal.value = this.value;
             });
 
+            // Inicialización inicial
+            toggleTipoUso();
+
+            // Submit del formulario
             const formCreate = document.getElementById('formCreate');
             formCreate.addEventListener('submit', function (e) {
-                const btnSubmit = document.getElementById('btnSubmit');
-
-                let fIniStr = document.getElementById('fechaInicio').value;
-                let fFinStr = document.getElementById('fechaFin').value;
-                let fIni = new Date(fIniStr);
-                let fFin = new Date(fFinStr);
-                let now = new Date();
-
-                // If not an Event, ensure End Time exists
-                if (selectUso.value !== 'Evento' && (!fIniStr || !fFinStr)) {
-                    e.preventDefault();
-                    Swal.fire({icon: 'warning',title: 'Faltan Datos',text: 'Debes especificar la fecha y hora de inicio y fin para los deportes.',confirmButtonColor: '#ff6b6b', customClass: { actions: 'justify-content-center' }});
-                    return false;
-                }
-
-                // If not an Event, Validate start < end
-                if (selectUso.value !== 'Evento' && fIni >= fFin) {
-                    e.preventDefault();
-                    Swal.fire({icon: 'warning',title: 'Horario Inválido',text: 'La hora de inicio debe ser estrictamente anterior a la hora de fin.',confirmButtonColor: '#ff6b6b', customClass: { actions: 'justify-content-center' }});
-                    return false;
-                }
-                
-                if (fIni < now) {
-                    e.preventDefault();
-                    Swal.fire({icon: 'warning',title: 'Viaje en el tiempo prohibido',text: 'No puedes agendar una reservación en el pasado.',confirmButtonColor: '#ff6b6b', customClass: { actions: 'justify-content-center' }});
-                    return false;
-                }
-
-                // Unlock MontoTotal right before submit just in case it's readonly so it posts properly
-                document.getElementById('MontoTotal').readOnly = false;
-
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Validando...';
-            });
-            
-            // Lógica de Precios Fijos (por hora) vs Eventos Editables
-            const selectUso = document.getElementById('TipoUso');
-            const inputMonto = document.getElementById('MontoTotal');
-            const containerFin = document.getElementById('fechaFinContainer');
-            
-            function calculatePrice() {
-                if(selectUso.value === 'Evento') return; // Do not overwrite Evento price automatically
-                
-                let fIniStr = document.getElementById('fechaInicio').value;
-                let fFinStr = document.getElementById('fechaFin').value;
-                
-                if(fIniStr && fFinStr) {
-                    let fIni = new Date(fIniStr);
-                    let fFin = new Date(fFinStr);
-                    if(fFin > fIni) {
-                        // Calculate diff in hours
-                        let diffMs = fFin - fIni;
-                        let diffHrs = diffMs / (1000 * 60 * 60);
-                        let basePrice = @ViewBag.PrecioCancha;
-                        let total = Math.max(1, diffHrs) * basePrice;
-                        inputMonto.value = total.toFixed(2);
-                    } else {
-                        inputMonto.value = '@String.Format("{0:N2}", ViewBag.PrecioCancha)'; // Fallback
+                if (tipoUsoSelect.value === 'Evento') {
+                    const rawVal = (inputMontoEvento.value || '').trim().replace(',', '.');
+                    const monto = parseFloat(rawVal);
+                    if (isNaN(monto) || monto <= 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Precio Acordado Requerido',
+                            text: 'Por favor, digite el precio total acordado con el cliente para el evento exclusivo.',
+                            confirmButtonColor: '#0d6efd',
+                            confirmButtonText: 'OK',
+                            customClass: { popup: 'rounded-4 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                        });
+                        inputMontoEvento.focus();
+                        return false;
                     }
-                }
-            }
-
-            function updateUIState() {
-                if(selectUso.value === 'Evento') {
-                    // Editable, No Mandatory End Date
-                    containerFin.style.display = 'none';
-                    document.getElementById('fechaFin').required = false;
-                    document.getElementById('fechaFin').value = ''; // clear it
-                    inputMonto.readOnly = false;
-                    inputMonto.value = '';
-                    inputMonto.placeholder = "Ingrese precio acordado...";
-                    inputMonto.classList.add('bg-white');
-                    inputMonto.classList.remove('text-muted');
+                    hiddenMontoTotal.value = monto.toString();
                 } else {
-                    // Precio Calculado (Lectura), End Date required
-                    containerFin.style.display = 'block';
-                    document.getElementById('fechaFin').required = true;
-                    inputMonto.readOnly = true;
-                    inputMonto.classList.remove('bg-white');
-                    inputMonto.classList.add('text-muted');
-                    calculatePrice();
+                    const horas = parseFloat(duracionSelect.value) || 1;
+                    hiddenMontoTotal.value = (horas * tarifaBase).toFixed(2);
                 }
-            }
-            
-            // Listeners
-            selectUso.addEventListener('change', updateUIState);
-            document.getElementById('fechaInicio').addEventListener('change', calculatePrice);
-            document.getElementById('fechaFin').addEventListener('change', calculatePrice);
-            
-            updateUIState(); // Init
+
+                const btnSubmit = document.getElementById('btnSubmit');
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...';
+            });
         });
     </script>
 }

@@ -46,6 +46,8 @@ namespace FactorGym.Web.Controllers
                 .Where(v => v.Fecha >= fechaInicio.Date && v.Fecha <= endOfDay).ToListAsync();
             var gastos = await _context.Gastos
                 .Where(g => g.Fecha >= fechaInicio.Date && g.Fecha <= endOfDay).ToListAsync();
+            var reservaciones = await _context.ReservacionesCanchas
+                .Where(r => (r.FechaPago ?? r.FechaHoraInicio) >= fechaInicio.Date && (r.FechaPago ?? r.FechaHoraInicio) <= endOfDay).ToListAsync();
 
             using var workbook = new XLWorkbook();
             
@@ -58,11 +60,13 @@ namespace FactorGym.Web.Controllers
             
             decimal totalPagos = pagos.Sum(p => p.Monto);
             decimal totalVentas = ventas.Sum(v => v.Total);
+            decimal totalCanchas = reservaciones.Sum(r => r.MontoTotal);
+            decimal totalIngresos = totalPagos + totalVentas + totalCanchas;
             decimal totalEgresos = gastos.Sum(g => g.Monto);
-            decimal utilidad = (totalPagos + totalVentas) - totalEgresos;
+            decimal utilidad = totalIngresos - totalEgresos;
 
             wsResumen.Cell(4, 1).Value = "Categoría";
-            wsResumen.Cell(4, 2).Value = "Monto (CRC)";
+            wsResumen.Cell(4, 2).Value = "Monto (C$)";
             wsResumen.Range("A4:B4").Style.Font.Bold = true;
             wsResumen.Range("A4:B4").Style.Fill.BackgroundColor = XLColor.AirForceBlue;
             wsResumen.Range("A4:B4").Style.Font.FontColor = XLColor.White;
@@ -71,21 +75,23 @@ namespace FactorGym.Web.Controllers
             wsResumen.Cell(5, 2).Value = totalPagos;
             wsResumen.Cell(6, 1).Value = "Ingresos por Tienda (Ventas)";
             wsResumen.Cell(6, 2).Value = totalVentas;
-            wsResumen.Cell(7, 1).Value = "Total Ingresos";
-            wsResumen.Cell(7, 2).Value = totalPagos + totalVentas;
-            wsResumen.Cell(7, 1).Style.Font.Bold = true;
-            wsResumen.Cell(7, 2).Style.Font.Bold = true;
+            wsResumen.Cell(7, 1).Value = "Ingresos por Cancha (Reservaciones)";
+            wsResumen.Cell(7, 2).Value = totalCanchas;
+            wsResumen.Cell(8, 1).Value = "Total Ingresos";
+            wsResumen.Cell(8, 2).Value = totalIngresos;
+            wsResumen.Cell(8, 1).Style.Font.Bold = true;
+            wsResumen.Cell(8, 2).Style.Font.Bold = true;
 
-            wsResumen.Cell(9, 1).Value = "Total Egresos (Gastos)";
-            wsResumen.Cell(9, 2).Value = totalEgresos;
-            wsResumen.Cell(9, 1).Style.Font.FontColor = XLColor.Red;
-            wsResumen.Cell(9, 2).Style.Font.FontColor = XLColor.Red;
+            wsResumen.Cell(10, 1).Value = "Total Egresos (Gastos)";
+            wsResumen.Cell(10, 2).Value = totalEgresos;
+            wsResumen.Cell(10, 1).Style.Font.FontColor = XLColor.Red;
+            wsResumen.Cell(10, 2).Style.Font.FontColor = XLColor.Red;
 
-            wsResumen.Cell(11, 1).Value = "UTILIDAD NETA";
-            wsResumen.Cell(11, 2).Value = utilidad;
-            wsResumen.Range("A11:B11").Style.Font.Bold = true;
-            wsResumen.Range("A11:B11").Style.Fill.BackgroundColor = utilidad >= 0 ? XLColor.AppleGreen : XLColor.CandyAppleRed;
-            wsResumen.Range("A11:B11").Style.Font.FontColor = XLColor.White;
+            wsResumen.Cell(12, 1).Value = "UTILIDAD NETA";
+            wsResumen.Cell(12, 2).Value = utilidad;
+            wsResumen.Range("A12:B12").Style.Font.Bold = true;
+            wsResumen.Range("A12:B12").Style.Fill.BackgroundColor = utilidad >= 0 ? XLColor.AppleGreen : XLColor.CandyAppleRed;
+            wsResumen.Range("A12:B12").Style.Font.FontColor = XLColor.White;
             wsResumen.Columns().AdjustToContents();
 
             // Sheet 2: Detalle Ingresos
@@ -128,6 +134,32 @@ namespace FactorGym.Web.Controllers
                 row++;
             }
             wsGastos.Columns().AdjustToContents();
+
+            // Sheet 4: Detalle Cancha (Reservaciones)
+            var wsCanchas = workbook.Worksheets.Add("Detalle Cancha");
+            wsCanchas.Cell(1, 1).Value = "Fecha y Hora";
+            wsCanchas.Cell(1, 2).Value = "Cliente Responsable";
+            wsCanchas.Cell(1, 3).Value = "Uso / Deporte";
+            wsCanchas.Cell(1, 4).Value = "Método Pago";
+            wsCanchas.Cell(1, 5).Value = "N° Recibo";
+            wsCanchas.Cell(1, 6).Value = "Estado";
+            wsCanchas.Cell(1, 7).Value = "Monto (C$)";
+            wsCanchas.Range("A1:G1").Style.Font.Bold = true;
+            wsCanchas.Range("A1:G1").Style.Fill.BackgroundColor = XLColor.LightGray;
+
+            int rowCancha = 2;
+            foreach (var r in reservaciones.OrderBy(r => r.FechaHoraInicio))
+            {
+                wsCanchas.Cell(rowCancha, 1).Value = r.FechaHoraInicio.ToString("dd/MM/yyyy HH:mm");
+                wsCanchas.Cell(rowCancha, 2).Value = r.NombreCliente;
+                wsCanchas.Cell(rowCancha, 3).Value = r.TipoUso;
+                wsCanchas.Cell(rowCancha, 4).Value = r.MetodoPago ?? "Efectivo";
+                wsCanchas.Cell(rowCancha, 5).Value = r.NumeroRecibo ?? "-";
+                wsCanchas.Cell(rowCancha, 6).Value = r.Estado;
+                wsCanchas.Cell(rowCancha, 7).Value = r.MontoTotal;
+                rowCancha++;
+            }
+            wsCanchas.Columns().AdjustToContents();
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);

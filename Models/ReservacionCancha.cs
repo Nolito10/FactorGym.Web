@@ -35,5 +35,16 @@ namespace FactorFitGym.Web.Models
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal MontoTotal { get; set; }
+
+        [MaxLength(50)]
+        public string MetodoPago { get; set; } = "Efectivo";
+
+        [MaxLength(50)]
+        public string NumeroRecibo { get; set; }
+
+        public DateTime? FechaPago { get; set; }
+
+        [MaxLength(20)]
+        public string EstadoPago { get; set; } = "Pagado";
     }
 }

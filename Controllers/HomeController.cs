@@ -36,7 +36,12 @@ public class HomeController : Controller
             .Where(v => v.Fecha >= startOfMonth && v.Fecha <= endOfMonth)
             .SumAsync(v => (decimal?)v.Total) ?? 0m;
 
-        var ingresosTotales = ingresosPagos + ingresosTienda;
+        // Ingresos por Cancha (Reservaciones del mes)
+        var ingresosCancha = await _context.ReservacionesCanchas
+            .Where(r => (r.FechaPago ?? r.FechaHoraInicio) >= startOfMonth && (r.FechaPago ?? r.FechaHoraInicio) <= endOfMonth)
+            .SumAsync(r => (decimal?)r.MontoTotal) ?? 0m;
+
+        var ingresosTotales = ingresosPagos + ingresosTienda + ingresosCancha;
 
         // Egresos (Gastos del mes)
         var egresos = await _context.Gastos
@@ -56,6 +61,9 @@ public class HomeController : Controller
             .CountAsync(p => p.Stock <= p.StockMinimo);
 
         ViewBag.IngresosTotales = ingresosTotales;
+        ViewBag.IngresosCancha = ingresosCancha;
+        ViewBag.IngresosPagos = ingresosPagos;
+        ViewBag.IngresosTienda = ingresosTienda;
         ViewBag.EgresosTotales = egresos;
         ViewBag.UtilidadNeta = ingresosTotales - egresos;
         ViewBag.VisitasHoy = visitasHoy;

@@ -25,6 +25,14 @@
       "PackagePath": "staticwebassets\\img\\Logo.png"
     },
     {
+      "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\img\\avatar-female.png",
+      "PackagePath": "staticwebassets\\img\\avatar-female.png"
+    },
+    {
+      "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\img\\avatar-male.png",
+      "PackagePath": "staticwebassets\\img\\avatar-male.png"
+    },
+    {
       "Id": "C:\\Users\\Nolito10\\source\\repos\\FactorGym.Web\\wwwroot\\js\\dashboard.js",
       "PackagePath": "staticwebassets\\js\\dashboard.js"
     },

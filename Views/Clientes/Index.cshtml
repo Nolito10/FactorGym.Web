@@ -33,8 +33,15 @@
                 <tr class="cliente-row bg-white shadow-sm transition-all" style="border-radius: 20px;">
                     <td class="ps-4 py-3" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px; width: 35%;">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center text-factor-dark bg-factor-dark-opacity me-3 shadow-sm" style="width: 50px; height: 50px;">
-                                <i class="bi @(item.Genero == "Femenino" ? "bi-gender-female" : "bi-gender-male") fs-3"></i>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-factor-dark-opacity me-3 shadow-sm overflow-hidden" style="width: 50px; height: 50px; padding: 4px;">
+                                @if (string.Equals(item.Genero?.Trim(), "Femenino", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <img src="~/img/avatar-female.png" alt="Femenino" class="w-100 h-100" style="object-fit: contain;" asp-append-version="true" />
+                                }
+                                else
+                                {
+                                    <img src="~/img/avatar-male.png" alt="Masculino" class="w-100 h-100" style="object-fit: contain;" asp-append-version="true" />
+                                }
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold text-dark nombre-cliente" style="font-size: 1.1rem;">@item.Nombre @item.Apellido</h6>
@@ -179,7 +186,7 @@
                     icon: 'success',
                     title: '¡Operación Exitosa!',
                     text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
-                    confirmButtonText: 'Genial',
+                    confirmButtonText: 'OK',
                     confirmButtonColor: '#28a745',
                     customClass: {
                         popup: 'rounded-5 shadow-lg border-0',

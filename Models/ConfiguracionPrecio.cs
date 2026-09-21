@@ -21,5 +21,9 @@ namespace FactorFitGym.Web.Models
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal Precio { get; set; }
+
+        [MaxLength(255)]
+        [Display(Name = "Descripción")]
+        public string Descripcion { get; set; }
     }
 }

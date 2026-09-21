@@ -1,99 +1,144 @@
 @model FactorFitGym.Web.Models.Membresia
 
 @{
-    ViewData["Title"] = "Asignar Planes";
+    ViewData["Title"] = "Alta de Membresía";
     Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    decimal precioBasico = ViewBag.PrecioBasico ?? 20.00m;
+    decimal precioPremium = ViewBag.PrecioPremium ?? 35.00m;
+    decimal precioFull = ViewBag.PrecioFull ?? 50.00m;
 }
 
-<div class="d-flex align-items-center justify-content-center mt-4" style="min-height: 75vh;">
-    <div class="col-12 col-md-10 col-lg-6">
-        <div class="card border-0 shadow-sm rounded-5 overflow-hidden">
-            <div class="bg-brand-light py-4 text-center">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+
+<div class="d-flex align-items-center justify-content-center py-2" style="min-height: calc(100vh - 140px);">
+    <div class="w-100" style="max-width: 850px;">
+        
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <!-- Encabezado con Icono a como estaba al inicio -->
+            <div class="bg-brand-light py-4 text-center border-bottom">
                 <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
                     <i class="bi bi-wallet2 text-brand" style="font-size: 1.8rem;"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-0">Alta de Membresía</h5>
+                <h4 class="fw-bold text-dark mb-0">Alta de Membresía</h4>
             </div>
-            
-            <div class="card-body p-4 p-md-5 bg-white">
+
+            <!-- Cuerpo del Formulario -->
+            <div class="card-body p-4 p-md-5">
                 <form id="formCreateMem" action="@Url.Action("Create", "Membresias")" method="post">
                     @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 mb-2">
-                            <label for="planSelector" class="form-label fw-bold ms-2" style="color: #0A58CA;"><i class="bi bi-star-fill me-1"></i> Planes Predefinidos</label>
-                            <select id="planSelector" class="form-select rounded-pill border-0 px-4 fw-bold text-dark shadow-sm" style="background-color: #e2eafc; height: 50px; font-size: 1.05rem; text-align: center;">
-                                <option value="" selected disabled>-- Selecciona un Paquete--</option>
-                                <option value="basico" data-tipo="Mensualidad" data-tipoplan="Básico" data-frecuencia="Mensual" data-costo="@(((decimal)ViewBag.PrecioBasico).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))">Plan Básico</option>
-                                <option value="premium" data-tipo="Mensualidad" data-tipoplan="Premium" data-frecuencia="Mensual" data-costo="@(((decimal)ViewBag.PrecioPremium).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))">Plan Premium</option>
-                                <option value="full" data-tipo="Mensualidad" data-tipoplan="Full Access" data-frecuencia="Mensual" data-costo="@(((decimal)ViewBag.PrecioFull).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))">Full Access</option>
-                            </select>
+
+                    <!-- Campos ocultos requeridos por el modelo -->
+                    <input type="hidden" name="Tipo" id="hiddenTipo" value="Membresía" />
+                    <input type="hidden" name="TipoPlan" id="hiddenTipoPlan" value="Básico" />
+                    <input type="hidden" name="Costo" id="hiddenCosto" value="@precioBasico.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" />
+
+                    <div class="row g-4">
+                        <!-- Selección de Cliente -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Cliente / Abonado</label>
+                            <div class="input-group rounded-pill overflow-hidden border bg-light shadow-xs" style="height: 48px;">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                    <i class="bi bi-person-fill"></i>
+                                </span>
+                                <select asp-for="ClienteId" class="form-select bg-transparent border-0 fw-semibold text-dark" style="cursor: pointer;" asp-items="ViewBag.ClienteId" required>
+                                    <option value="" selected disabled>Seleccionar cliente...</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="col-12 mb-3">
-                            <label asp-for="ClienteId" class="form-label fw-bold small ms-2" style="color: #6c757d;">Seleccionar Cliente <span class="text-danger">*</span></label>
-                            <select asp-for="ClienteId" class="form-select rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" asp-items="ViewBag.ClienteId">
-                                <option value="" selected disabled>-- Elegir un Cliente--</option>
-                            </select>
+                        <!-- Selección de Plan Predefinido (Sin mostrar el precio) -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Plan de Membresía</label>
+                            <div class="input-group rounded-pill overflow-hidden border bg-light shadow-xs" style="height: 48px;">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                    <i class="bi bi-star-fill"></i>
+                                </span>
+                                <select id="planSelector" class="form-select bg-transparent border-0 fw-semibold text-dark" style="cursor: pointer;">
+                                    <option value="Básico" data-precio="@precioBasico.ToString(System.Globalization.CultureInfo.InvariantCulture)" selected>Plan Básico</option>
+                                    <option value="Premium" data-precio="@precioPremium.ToString(System.Globalization.CultureInfo.InvariantCulture)">Plan Premium</option>
+                                    <option value="Full Access" data-precio="@precioFull.ToString(System.Globalization.CultureInfo.InvariantCulture)">Plan Full Access</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="Tipo" class="form-label fw-bold small ms-2" style="color: #6c757d;">Servicio General <span class="text-danger">*</span></label>
-                            <input asp-for="Tipo" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" placeholder="Ej. Mensualidad" />
+                        <!-- Frecuencia de Pago -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Frecuencia de Pago</label>
+                            <div class="input-group rounded-pill overflow-hidden border bg-light shadow-xs" style="height: 48px;">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </span>
+                                <select asp-for="Frecuencia" id="frecuenciaSelect" class="form-select bg-transparent border-0 fw-semibold text-dark" style="cursor: pointer;" required>
+                                    <option value="Semanal">Semanal (7 días)</option>
+                                    <option value="Quincenal">Quincenal (15 días)</option>
+                                    <option value="Mensual" selected>Mensual (1 mes)</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="TipoPlan" class="form-label fw-bold small ms-2" style="color: #6c757d;">Tipo Específico <span class="text-danger">*</span></label>
-                            <input asp-for="TipoPlan" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" placeholder="Ej. Premium" />
+                        <!-- Costo Calculado (Bloqueado, Sin Fórmulas) -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Monto a Cobrar (C$)</label>
+                            <div class="px-3 rounded-pill d-flex align-items-center justify-content-between border border-primary border-opacity-25" style="background-color: #F8FAFC; height: 48px;">
+                                <div class="d-flex align-items-center text-primary">
+                                    <i class="bi bi-cash-stack fs-5 me-2"></i>
+                                    <span class="fw-semibold text-muted small">Total</span>
+                                </div>
+                                <div>
+                                    <span class="fs-5 fw-bold text-primary" id="displayCosto">C$ @precioBasico.ToString("N2")</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="Frecuencia" class="form-label fw-bold small ms-2" style="color: #6c757d;">Frecuencia <span class="text-danger">*</span></label>
-                            <input asp-for="Frecuencia" class="form-control rounded-pill border-0 px-4" style="background-color: #f4f6f9; height: 42px; font-size: 0.95rem; text-align: center;" placeholder="Ej. Mensual" />
+                        <!-- Fecha de Inicio (Flatpickr) -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Fecha de Inicio</label>
+                            <div class="input-group rounded-pill overflow-hidden border border-primary border-opacity-25 bg-white shadow-xs" style="height: 48px;">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                    <i class="bi bi-calendar-check-fill"></i>
+                                </span>
+                                <input type="text" id="fechaInicioPicker" name="FechaInicio" class="form-control bg-transparent border-0 fw-bold text-dark" placeholder="Selecciona inicio..." required />
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="Costo" class="form-label fw-bold small ms-2" style="color: #6c757d;">Costo (C$) <span class="text-danger">*</span></label>
-                            <input asp-for="Costo" type="number" step="0.01" class="form-control rounded-pill border-0 px-4 fw-bold" style="background-color: #f4f6f9; height: 42px; font-size: 1.05rem; text-align: center; color: #0A58CA;" />
+                        <!-- Fecha de Fin / Vencimiento (Flatpickr) -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">Fecha de Vencimiento</label>
+                            <div class="input-group rounded-pill overflow-hidden border border-primary border-opacity-25 bg-white shadow-xs" style="height: 48px;">
+                                <span class="input-group-text bg-transparent border-0 ps-3 pe-2 text-primary">
+                                    <i class="bi bi-calendar-x-fill"></i>
+                                </span>
+                                <input type="text" id="fechaFinPicker" name="FechaFin" class="form-control bg-transparent border-0 fw-bold text-dark" placeholder="Vencimiento..." required />
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="FechaInicio" class="form-label fw-bold small ms-2" style="color: #6c757d;">Fecha de Inicio <span class="text-danger">*</span></label>
-                            <input asp-for="FechaInicio" type="date" class="form-control rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem; text-align: center;" />
+                        <!-- Botón de Envío Centrado y Compacto -->
+                        <div class="col-12 text-center mt-3 pt-2">
+                            <button type="submit" id="btnSubmit" class="btn btn-brand rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center justify-content-center">
+                                <i class="bi bi-check2 me-1"></i> Asignar Membresía
+                            </button>
                         </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="FechaFin" class="form-label fw-bold small ms-2" style="color: #6c757d;">Fecha de Fin / Vencimiento <span class="text-danger">*</span></label>
-                            <input asp-for="FechaFin" type="date" class="form-control rounded-pill border-0 px-4 py-2" style="background-color: #f4f6f9; font-size: 0.95rem; text-align: center;" />
-                        </div>
-                    </div>
-
-                    <div class="mt-4 text-center">
-                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm" style="height: 45px;">Guardar</button>
                     </div>
                 </form>
             </div>
         </div>
+
     </div>
 </div>
 
+<style>
+    .shadow-xs { box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+</style>
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
     <script>
-        // Fechas automáticas por defecto
         document.addEventListener('DOMContentLoaded', function () {
             
-            let fpInicio = document.querySelector('[name="FechaInicio"]');
-            let fpFin = document.querySelector('[name="FechaFin"]');
-            if(fpInicio && !fpInicio.value){
-                let hoy = new Date();
-                fpInicio.value = hoy.toISOString().split('T')[0];
-                
-                // Un mes despues por default
-                hoy.setMonth(hoy.getMonth() + 1);
-                fpFin.value = hoy.toISOString().split('T')[0];
-            }
-
             @if(TempData["SuccessMessage"] != null)
             {
                 <text>
@@ -101,7 +146,7 @@
                     icon: 'success',
                     title: '¡Operación Exitosa!',
                     text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
-                    confirmButtonText: 'OK ',
+                    confirmButtonText: 'OK',
                     confirmButtonColor: '#0A58CA',
                     customClass: {
                         popup: 'rounded-4 shadow-lg border-0',
@@ -111,43 +156,107 @@
                 </text>
             }
 
-            // Auto-filleado de Planes Predefinidos
-            document.getElementById('planSelector').addEventListener('change', function() {
-                const option = this.options[this.selectedIndex];
-                if(option.value) {
-                    document.querySelector('[name="Tipo"]').value = option.dataset.tipo;
-                    document.querySelector('[name="TipoPlan"]').value = option.dataset.tipoplan;
-                    document.querySelector('[name="Frecuencia"]').value = option.dataset.frecuencia;
-                    document.querySelector('[name="Costo"]').value = option.dataset.costo;
+            const planSelector = document.getElementById('planSelector');
+            const frecuenciaSelect = document.getElementById('frecuenciaSelect');
+            const hiddenTipoPlan = document.getElementById('hiddenTipoPlan');
+            const hiddenCosto = document.getElementById('hiddenCosto');
+            const displayCosto = document.getElementById('displayCosto');
+
+            let fpInicio = null;
+            let fpFin = null;
+
+            function actualizarCosto() {
+                const selectedOption = planSelector.options[planSelector.selectedIndex];
+                const precioBase = parseFloat(selectedOption.dataset.precio) || 0;
+                const frecuencia = frecuenciaSelect.value;
+                
+                hiddenTipoPlan.value = planSelector.value;
+                
+                let costo = precioBase;
+                if (frecuencia === 'Semanal') {
+                    costo = precioBase / 4;
+                } else if (frecuencia === 'Quincenal') {
+                    costo = precioBase / 2;
+                }
+                
+                hiddenCosto.value = costo.toFixed(2);
+                displayCosto.textContent = `C$ ${costo.toFixed(2)}`;
+            }
+
+            function calcularFechaFin() {
+                if (!fpInicio || !fpInicio.selectedDates.length || !fpFin) return;
+                
+                const inicio = new Date(fpInicio.selectedDates[0]);
+                const frecuencia = frecuenciaSelect.value;
+                const fin = new Date(inicio);
+                
+                if (frecuencia === 'Semanal') {
+                    fin.setDate(fin.getDate() + 7);
+                } else if (frecuencia === 'Quincenal') {
+                    fin.setDate(fin.getDate() + 15);
+                } else { // Mensual
+                    fin.setMonth(fin.getMonth() + 1);
+                }
+                
+                fpFin.setDate(fin);
+            }
+
+            // Inicializar Flatpickr
+            const hoy = new Date();
+
+            fpInicio = flatpickr("#fechaInicioPicker", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                minDate: "today",
+                defaultDate: hoy,
+                locale: "es",
+                onChange: function () {
+                    calcularFechaFin();
                 }
             });
 
-            // Validaciones
-            document.getElementById('formCreateMem').addEventListener('submit', function(event) {
-                const form = event.target;
-                const cliente = form.querySelector('[name="ClienteId"]').value;
-                const tipo = form.querySelector('[name="Tipo"]').value;
-                const costo = form.querySelector('[name="Costo"]').value;
+            fpFin = flatpickr("#fechaFinPicker", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                minDate: "today",
+                locale: "es"
+            });
 
-                if(!cliente || !tipo || !costo) {
-                    event.preventDefault();
+            // Inicializar cálculos
+            actualizarCosto();
+            calcularFechaFin();
+
+            planSelector.addEventListener('change', function () {
+                actualizarCosto();
+            });
+
+            frecuenciaSelect.addEventListener('change', function () {
+                actualizarCosto();
+                calcularFechaFin();
+            });
+
+            // Validación al enviar
+            const formCreateMem = document.getElementById('formCreateMem');
+            formCreateMem.addEventListener('submit', function (e) {
+                const cliente = document.querySelector('[name="ClienteId"]').value;
+                if (!cliente) {
+                    e.preventDefault();
                     Swal.fire({
                         icon: 'warning',
-                        title: '¡Datos Faltantes!',
-                        text: 'Asegúrate de seleccionar un cliente, el tipo de plan y establecer el costo.',
-                        confirmButtonText: 'REVISAR',
-                        confirmButtonColor: '#ff6b6b',
-                        customClass: {
-                            popup: 'rounded-4 shadow-lg border-0',
-                            confirmButton: 'rounded-pill px-4'
-                        }
+                        title: 'Cliente Requerido',
+                        text: 'Por favor, selecciona un cliente para asignar la membresía.',
+                        confirmButtonColor: '#0A58CA',
+                        confirmButtonText: 'OK',
+                        customClass: { popup: 'rounded-4 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
                     });
                     return false;
                 }
-                
-                const btnSubmitObj = form.querySelector('button[type="submit"]');
-                btnSubmitObj.disabled = true;
-                btnSubmitObj.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
+
+                const btnSubmit = document.getElementById('btnSubmit');
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...';
             });
             
         });

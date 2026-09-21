@@ -32,7 +32,7 @@
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="Precio" class="form-label fw-bold text-secondary text-uppercase small">Nuevo Precio (C$)</label>
+                        <label asp-for="Precio" class="form-label fw-bold text-secondary text-uppercase small">Precio Vigente (C$)</label>
                         <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white border border-2 border-primary border-opacity-25">
                             <span class="input-group-text bg-transparent border-0 ps-4 pe-2">
                                 <i class="bi bi-cash-stack text-primary"></i>
@@ -42,9 +42,18 @@
                         <span asp-validation-for="Precio" class="text-danger small mt-1 d-block ms-3"></span>
                     </div>
 
-                    <div class="d-grid gap-2 mt-5">
+                    <div class="mb-4">
+                        <label asp-for="Descripcion" class="form-label fw-bold text-secondary text-uppercase small">Descripción del Plan / Servicio</label>
+                        <div class="shadow-sm rounded-4 overflow-hidden bg-white border border-2 border-secondary border-opacity-25 p-1">
+                            <textarea asp-for="Descripcion" rows="3" class="form-control border-0 px-3 py-2 text-dark" style="resize: none;" placeholder="Ingresa una breve descripción de lo que incluye este plan o servicio..."></textarea>
+                        </div>
+                        <span asp-validation-for="Descripcion" class="text-danger small mt-1 d-block ms-3"></span>
+                        <div class="form-text small ms-2 text-muted">Esta descripción se mostrará directamente en la tarjeta de precios.</div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-brand btn-lg rounded-pill fw-bold shadow-sm">
-                            Guardar Precio
+                            <i class="bi bi-check2-circle me-1"></i> Guardar Cambios
                         </button>
                         <a asp-action="Index" class="btn btn-light btn-lg rounded-pill fw-bold text-muted border">
                             Cancelar

@@ -10,8 +10,15 @@
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body text-center p-5">
-                <div class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto mb-4 shadow" style="width: 120px; height: 120px; background-color: @(Model.Genero == "Femenino" ? "#e83e8c" : "#0d6efd");">
-                    <i class="bi @(Model.Genero == "Femenino" ? "bi-gender-female" : "bi-gender-male")" style="font-size: 4rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center bg-factor-dark-opacity mx-auto mb-4 shadow overflow-hidden" style="width: 120px; height: 120px; padding: 12px;">
+                    @if (string.Equals(Model.Genero?.Trim(), "Femenino", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <img src="~/img/avatar-female.png" alt="Femenino" class="w-100 h-100" style="object-fit: contain;" asp-append-version="true" />
+                    }
+                    else
+                    {
+                        <img src="~/img/avatar-male.png" alt="Masculino" class="w-100 h-100" style="object-fit: contain;" asp-append-version="true" />
+                    }
                 </div>
                 
                 <h3 class="fw-bold mb-1 text-dark">@Model.Nombre @Model.Apellido</h3>

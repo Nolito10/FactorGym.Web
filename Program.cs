@@ -38,9 +38,28 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     });
 
+// Configuración regional fija (Nicaragua): C$, punto decimal (.) y coma de miles (,)
+var defaultCulture = new System.Globalization.CultureInfo("es-NI");
+defaultCulture.NumberFormat.NumberDecimalSeparator = ".";
+defaultCulture.NumberFormat.NumberGroupSeparator = ",";
+defaultCulture.NumberFormat.CurrencyDecimalSeparator = ".";
+defaultCulture.NumberFormat.CurrencyGroupSeparator = ",";
+defaultCulture.NumberFormat.CurrencySymbol = "C$";
+
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(defaultCulture);
+    options.SupportedCultures = new[] { defaultCulture };
+    options.SupportedUICultures = new[] { defaultCulture };
+});
+
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseRequestLocalization();
 
 // Aplicar migraciones y crear usuario inicial al arrancar (protegido contra crash)
 using (var scope = app.Services.CreateScope())
@@ -49,6 +68,17 @@ using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         db.Database.Migrate();
+
+        // Corregir reservaciones que se guardaron infladas (ej. 250000 en vez de 2500) por el formato anterior
+        var reservacionesErroneas = db.ReservacionesCanchas.Where(r => r.MontoTotal >= 200000m).ToList();
+        if (reservacionesErroneas.Any())
+        {
+            foreach (var r in reservacionesErroneas)
+            {
+                r.MontoTotal = Math.Round(r.MontoTotal / 100m, 2);
+            }
+            db.SaveChanges();
+        }
 
         if (!db.Usuarios.Any())
         {

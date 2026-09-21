@@ -70,25 +70,60 @@ namespace FactorFitGym.Web.Controllers
         {
             ModelState.Remove("Estado");
             
+            // Valores por defecto para campos automáticos
+            if (string.IsNullOrWhiteSpace(membresia.Tipo))
+                membresia.Tipo = "Membresía";
+            if (string.IsNullOrWhiteSpace(membresia.TipoPlan))
+                membresia.TipoPlan = "Básico";
+            if (string.IsNullOrWhiteSpace(membresia.Frecuencia))
+                membresia.Frecuencia = "Mensual";
+
+            // Recalcular costo con base en el Gestor de Precios
+            string clavePrecio = membresia.TipoPlan switch
+            {
+                "Premium" => "PLAN_PREMIUM",
+                "Full Access" => "PLAN_FULL",
+                _ => "PLAN_BASICO"
+            };
+
+            decimal precioBase = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == clavePrecio)?.Precio ?? 20.00m;
+            decimal costoCalculado = membresia.Frecuencia switch
+            {
+                "Semanal" => Math.Round(precioBase / 4m, 2),
+                "Quincenal" => Math.Round(precioBase / 2m, 2),
+                _ => precioBase // Mensual
+            };
+            membresia.Costo = costoCalculado;
+
+            // Ajustar FechaFin si no fue definida o es menor
+            if (membresia.FechaFin <= membresia.FechaInicio)
+            {
+                membresia.FechaFin = membresia.Frecuencia switch
+                {
+                    "Semanal" => membresia.FechaInicio.AddDays(7),
+                    "Quincenal" => membresia.FechaInicio.AddDays(15),
+                    _ => membresia.FechaInicio.AddMonths(1)
+                };
+            }
+
             if (ModelState.IsValid)
             {
                 membresia.Estado = "Activa";
-                
-                // Set default capacities depending on plan if needed
-                if(membresia.TipoPlan == "Zumba" && !membresia.Capacidad.HasValue) 
-                    membresia.Capacidad = 20;
 
                 _context.Add(membresia);
                 await _context.SaveChangesAsync();
                 
-                TempData["SuccessMessage"] = "¡Membresía asignada exitosamente al cliente!";
-                return RedirectToAction(nameof(Create));
+                TempData["SuccessMessage"] = $"¡Membresía ({membresia.TipoPlan} - {membresia.Frecuencia}) asignada exitosamente al cliente!";
+                return RedirectToAction(nameof(Index));
             }
 
             var clientes = _context.Clientes.Where(c => c.IsActivo)
                 .Select(c => new { c.Id, NombreCompleto = c.Nombre + " " + c.Apellido })
                 .ToList();
             ViewBag.ClienteId = new SelectList(clientes, "Id", "NombreCompleto", membresia.ClienteId);
+            ViewBag.PrecioBasico = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == "PLAN_BASICO")?.Precio ?? 20.00m;
+            ViewBag.PrecioPremium = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == "PLAN_PREMIUM")?.Precio ?? 35.00m;
+            ViewBag.PrecioFull = _context.ConfiguracionPrecios.FirstOrDefault(p => p.Clave == "PLAN_FULL")?.Precio ?? 50.00m;
             
             return View(membresia);
         }

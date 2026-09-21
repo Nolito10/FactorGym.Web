@@ -79,6 +79,17 @@
                     <h3 class="fw-bold text-dark mb-0 d-flex align-items-center">
                         <span class="fs-5 me-1 text-muted">C$</span>@String.Format("{0:N2}", ViewBag.IngresosTotales)
                     </h3>
+                    <div class="d-flex flex-wrap gap-1 mt-2 pt-1">
+                        <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;" title="Ingresos por Membresías">
+                            <i class="bi bi-credit-card me-1"></i>Planes: C$@String.Format("{0:N0}", ViewBag.IngresosPagos ?? 0)
+                        </span>
+                        <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;" title="Ingresos por Tienda">
+                            <i class="bi bi-shop me-1"></i>Tienda: C$@String.Format("{0:N0}", ViewBag.IngresosTienda ?? 0)
+                        </span>
+                        <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;" title="Ingresos por Cancha">
+                            <i class="bi bi-dribbble me-1 text-success"></i>Cancha: C$@String.Format("{0:N0}", ViewBag.IngresosCancha ?? 0)
+                        </span>
+                    </div>
                 </div>
             </div>
 

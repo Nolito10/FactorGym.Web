@@ -4,6 +4,7 @@ using FactorFitGym.Web.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactorGym.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260921171527_AddDescripcionToConfiguracionPrecio")]
+    partial class AddDescripcionToConfiguracionPrecio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -350,22 +353,11 @@ namespace FactorGym.Web.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<string>("EstadoPago")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
                     b.Property<DateTime?>("FechaHoraFin")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("FechaHoraInicio")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("FechaPago")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("MetodoPago")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("MontoTotal")
                         .HasColumnType("decimal(10,2)");
@@ -374,10 +366,6 @@ namespace FactorGym.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
-
-                    b.Property<string>("NumeroRecibo")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("TipoUso")
                         .IsRequired()

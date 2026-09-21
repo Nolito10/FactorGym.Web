@@ -25,7 +25,7 @@
                 <th class="ps-4 pb-2">Cliente</th>
                 <th class="pb-2">Uso previsto</th>
                 <th class="pb-2 text-center">Horario</th>
-                <th class="pb-2 text-center">Pago</th>
+                <th class="pb-2 text-center">Pago y Recibo</th>
                 <th class="pb-2 text-center">Estado</th>
                 <th class="text-center pe-4 pb-2">Acciones</th>
             </tr>
@@ -33,7 +33,7 @@
         <tbody>
             @foreach (var item in Model) {
                 <tr class="reserva-row bg-white shadow-sm transition-all" style="border-radius: 20px;">
-                    <td class="ps-4 py-3" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px; width: 25%;">
+                    <td class="ps-4 py-3" style="border-top-left-radius: 20px; border-bottom-left-radius: 20px; width: 22%;">
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle d-flex align-items-center justify-content-center text-white me-3 shadow-sm bg-secondary" style="width: 50px; height: 50px;">
                                 <i class="bi bi-person-fill fs-3"></i>
@@ -43,7 +43,7 @@
                             </div>
                         </div>
                     </td>
-                    <td class="py-3" style="width: 20%;">
+                    <td class="py-3" style="width: 18%;">
                         <div class="d-flex flex-column search-uso">
                             <span class="fw-bold text-dark">
                                 @if (item.TipoUso == "Básquetbol") { <i class="bi bi-dribbble text-warning me-1"></i> }
@@ -54,20 +54,37 @@
                             </span>
                         </div>
                     </td>
-                    <td class="py-3 text-center" style="width: 25%;">
+                    <td class="py-3 text-center" style="width: 22%;">
                         <div class="d-flex flex-column align-items-center search-fecha">
                             <span class="badge bg-light text-dark shadow-sm border mb-1 w-100 py-2">
                                 <i class="bi bi-calendar-event text-primary me-1"></i> @item.FechaHoraInicio.ToString("dd MMM yyyy")
                             </span>
-                            <small class="fw-bold text-secondary">
-                                <i class="bi bi-clock me-1"></i> @item.FechaHoraInicio.ToString("HH:mm") - @(item.FechaHoraFin?.ToString("HH:mm") ?? "Sin Fin")
-                            </small>
+                            @if (item.TipoUso == "Evento")
+                            {
+                                <span class="badge bg-warning bg-opacity-25 text-dark fw-bold rounded-pill px-3 py-1">
+                                    <i class="bi bi-sun-fill text-warning me-1"></i> Día Completo
+                                </span>
+                            }
+                            else
+                            {
+                                <small class="fw-bold text-secondary">
+                                    <i class="bi bi-clock me-1"></i> @item.FechaHoraInicio.ToString("HH:mm") - @(item.FechaHoraFin?.ToString("HH:mm") ?? "Sin Fin")
+                                </small>
+                            }
                         </div>
                     </td>
-                    <td class="py-3 text-center" style="width: 15%;">
-                        <span class="fw-bold text-success fs-5">C$@item.MontoTotal.ToString("N2")</span>
+                    <td class="py-3 text-center" style="width: 18%;">
+                        <div class="d-flex flex-column align-items-center">
+                            <span class="fw-bold text-success fs-5">C$@item.MontoTotal.ToString("N2")</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill small mt-1">
+                                <i class="bi bi-check2-circle me-1"></i>@(item.MetodoPago ?? "Efectivo")
+                            </span>
+                            <span class="text-muted small mt-1" style="font-size: 0.72rem;">
+                                <code>@(item.NumeroRecibo ?? "PAGADO")</code>
+                            </span>
+                        </div>
                     </td>
-                    <td class="py-3 text-center" style="width: 15%;">
+                    <td class="py-3 text-center" style="width: 10%;">
                         @if (item.Estado == "Confirmada")
                         {
                             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold w-100"><i class="bi bi-check-circle-fill me-1"></i> Confirmada</span>
@@ -81,13 +98,28 @@
                             <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2 fw-bold w-100"><i class="bi bi-check-all me-1"></i> Completada</span>
                         }
                     </td>
-                    <td class="text-center pe-4 py-3" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 15%;">
+                    <td class="text-center pe-4 py-3" style="border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 10%;">
                         <div class="d-flex justify-content-center gap-2">
+                            <!-- Botón Reagendar: SOLO disponible si la reservación está Confirmada (NO si ya fue Completada ni Cancelada) -->
+                            @if (item.Estado == "Confirmada")
+                            {
+                                <button type="button" 
+                                        class="btn btn-sm btn-light bg-opacity-50 border-0 text-primary fw-bold px-3 rounded-pill d-flex align-items-center shadow-sm btn-open-reagendar" 
+                                        title="Reprogramar Horario"
+                                        data-id="@item.Id"
+                                        data-cliente="@item.NombreCliente"
+                                        data-uso="@item.TipoUso"
+                                        data-inicio="@item.FechaHoraInicio.ToString("yyyy-MM-dd HH:mm")"
+                                        data-duracion="@(item.FechaHoraFin.HasValue ? (item.FechaHoraFin.Value - item.FechaHoraInicio).TotalHours.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "1")">
+                                    <i class="bi bi-calendar-range fs-5"></i>
+                                </button>
+                            }
+
                             @if (item.Estado == "Confirmada")
                             {
                                 <form action="@Url.Action("Cancel", "ReservacionesCanchas", new { id = item.Id })" method="post" class="d-inline form-cancelar">
                                     @Html.AntiForgeryToken()
-                                    <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-warning fw-bold px-3 rounded-pill d-flex align-items-center shadow-sm btn-cancel-reserva" title="Cancelar Reserva">
+                                    <button type="button" class="btn btn-sm btn-light bg-opacity-50 border-0 text-warning fw-bold px-3 rounded-pill d-flex align-items-center shadow-sm btn-cancel-reserva" title="Cancelar Reserva (Libera Cancha)">
                                         <i class="bi bi-x-circle fs-5"></i>
                                     </button>
                                 </form>
@@ -117,29 +149,180 @@
     @await Html.PartialAsync("_Pagination")
 </div>
 
+<!-- Modal Reagendar -->
+<div class="modal fade" id="modalReagendar" tabindex="-1" aria-labelledby="modalReagendarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 25px; overflow: hidden;">
+            <div class="modal-header bg-brand-light border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="modal-title fw-bold text-dark mb-0" id="modalReagendarLabel">
+                    <i class="bi bi-calendar-range text-brand me-2"></i>Reprogramar Reservación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form action="@Url.Action("Reagendar", "ReservacionesCanchas")" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="reagendarId" />
+                <div class="modal-body p-4">
+                    <div class="p-3 mb-3 rounded-4 bg-light border">
+                        <span class="d-block small text-muted">Cliente Responsable:</span>
+                        <strong class="text-dark fs-6" id="reagendarCliente"></strong>
+                        <span class="d-block small text-muted mt-1">Actividad: <strong class="text-primary" id="reagendarUso"></strong></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Nueva Fecha y Hora de Inicio</label>
+                        <div class="input-group rounded-pill overflow-hidden shadow-xs border bg-white">
+                            <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
+                                <i class="bi bi-clock-fill text-primary"></i>
+                            </span>
+                            <input type="text" name="nuevaFechaHoraInicio" id="reagendarInicio" class="form-control border-0 px-2 py-2 fw-bold text-dark bg-transparent" placeholder="Selecciona fecha y hora..." required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="grupoReagendarDuracion">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Tiempo Estimado de Reserva</label>
+                        <div class="input-group rounded-pill overflow-hidden shadow-xs border bg-white">
+                            <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
+                                <i class="bi bi-hourglass-split text-brand"></i>
+                            </span>
+                            <select name="duracionHoras" id="reagendarDuracion" class="form-select border-0 px-2 py-2 fw-bold text-dark bg-transparent" style="cursor: pointer;">
+                                <option value="1">1 Hora (60 min)</option>
+                                <option value="1.5">1 Hora y 30 min (90 min)</option>
+                                <option value="2">2 Horas (120 min)</option>
+                                <option value="2.5">2 Horas y 30 min (150 min)</option>
+                                <option value="3">3 Horas (180 min)</option>
+                                <option value="4">4 Horas (240 min)</option>
+                                <option value="5">5 Horas (300 min)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 d-none" id="grupoReagendarEvento">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Tiempo Estimado de Reserva</label>
+                        <div class="rounded-pill bg-light border px-3 py-2 d-flex align-items-center text-dark fw-bold">
+                            <i class="bi bi-sun-fill text-warning me-2 fs-5"></i>
+                            <span>Día Completo (Evento Exclusivo)</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-4 small mb-0 py-2 d-flex align-items-center gap-2" style="background-color: #E8F0FE;">
+                        <i class="bi bi-info-circle-fill text-brand fs-5"></i>
+                        <span>El pago ya fue cobrado. La reprogramación no genera ningún costo adicional.</span>
+                    </div>
+                </div>
+                <!-- Botón Guardar Centrado (sin botón cerrar, se usa la X del modal) -->
+                <div class="modal-footer border-0 p-3 pb-4 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-brand rounded-pill px-5 py-2 fw-bold shadow-sm">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     .transition-all { transition: all 0.3s ease; }
     .reserva-row:hover { transform: translateY(-3px) scale(1.005); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
 </style>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             
-            // Notificadores TempData
             @if(TempData["SuccessMessage"] != null)
             {
                 <text>
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Hecho!',
+                    title: '¡Operación Exitosa!',
                     text: @Html.Raw(Json.Serialize(TempData["SuccessMessage"])),
-                    confirmButtonText: 'Genial',
-                    confirmButtonColor: '#28a745',
-                    customClass: { popup: 'rounded-5 shadow-lg border-0', confirmButton: 'rounded-pill px-4' }
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0A58CA',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg border-0',
+                        confirmButton: 'rounded-pill px-4'
+                    }
                 });
                 </text>
             }
+
+            @if(TempData["ErrorMessage"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Atención',
+                    text: @Html.Raw(Json.Serialize(TempData["ErrorMessage"])),
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#dc3545',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg border-0',
+                        confirmButton: 'rounded-pill px-4'
+                    }
+                });
+                </text>
+            }
+
+            // Inicializar Flatpickr para el modal de Reagendar
+            let fpReagendar = flatpickr("#reagendarInicio", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                altInput: true,
+                altFormat: "d/m/Y h:i K",
+                minDate: "today",
+                time_24hr: false,
+                minuteIncrement: 15,
+                locale: "es"
+            });
+
+            // Modal Reagendar
+            const modalElement = document.getElementById('modalReagendar');
+            const reagendarModal = modalElement ? new bootstrap.Modal(modalElement) : null;
+
+            document.querySelectorAll('.btn-open-reagendar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const isEvento = this.dataset.uso === 'Evento';
+                    document.getElementById('reagendarId').value = this.dataset.id;
+                    document.getElementById('reagendarCliente').textContent = this.dataset.cliente;
+                    document.getElementById('reagendarUso').textContent = this.dataset.uso;
+
+                    const grupoDuracion = document.getElementById('grupoReagendarDuracion');
+                    const grupoEvento = document.getElementById('grupoReagendarEvento');
+
+                    if (isEvento) {
+                        grupoDuracion.classList.add('d-none');
+                        grupoEvento.classList.remove('d-none');
+                    } else {
+                        grupoDuracion.classList.remove('d-none');
+                        grupoEvento.classList.add('d-none');
+                    }
+
+                    if (fpReagendar) {
+                        fpReagendar.set('enableTime', !isEvento);
+                        fpReagendar.set('altFormat', isEvento ? 'd/m/Y' : 'd/m/Y h:i K');
+                        fpReagendar.set('dateFormat', isEvento ? 'Y-m-d 06:00' : 'Y-m-d H:i');
+                        if (this.dataset.inicio) {
+                            fpReagendar.setDate(this.dataset.inicio);
+                        }
+                    }
+
+                    const duracionSelect = document.getElementById('reagendarDuracion');
+                    if (duracionSelect && this.dataset.duracion) {
+                        duracionSelect.value = this.dataset.duracion;
+                    }
+
+                    if (reagendarModal) {
+                        reagendarModal.show();
+                    }
+                });
+            });
 
             // Búsqueda en tiempo real
             const searchInput = document.getElementById('searchInput');
@@ -162,22 +345,22 @@
                 });
             }
 
-            // Confirmación de Cancelación
+            // Confirmación de Cancelación (Explicando política de no devolución)
             document.querySelectorAll('.btn-cancel-reserva').forEach(btn => {
                 btn.addEventListener('click', function() {
                     let form = this.closest('form');
                     Swal.fire({
-                        title: '¿Cancelar Reservación?',
-                        text: "Esta acción cambiará el estado a 'Cancelada'. Se liberará el horario.",
+                        title: '¿Liberar Cancha y Cancelar?',
+                        text: "Se liberará el horario para otros deportistas. Nota: De acuerdo a las políticas, el cobro no es reembolsable en efectivo (el cliente puede reagendar su fecha).",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ffc107',
                         cancelButtonColor: '#secondary',
-                        confirmButtonText: 'Sí, cancelar',
-                        cancelButtonText: 'No',
+                        confirmButtonText: 'Sí, liberar horario',
+                        cancelButtonText: 'Mantener reservación',
                         background: '#ffffff',
-                        customClass: { popup: 'rounded-5 shadow-lg', confirmButton: 'rounded-pill px-4 text-dark font-weight-bold mx-2', cancelButton: 'rounded-pill px-4 btn-light mx-2' },
-                        buttonsStyling: false // Forces use of our bootstrap classes for clean layout
+                        customClass: { popup: 'rounded-5 shadow-lg', confirmButton: 'btn btn-warning rounded-pill px-4 text-dark fw-bold mx-2', cancelButton: 'btn btn-light rounded-pill px-4 mx-2' },
+                        buttonsStyling: false
                     }).then((result) => {
                         if (result.isConfirmed) form.submit();
                     });
