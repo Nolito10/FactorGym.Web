@@ -1,0 +1,278 @@
+@model FactorFitGym.Web.Models.Equipo
+
+@{
+    ViewData["Title"] = "Detalle: " + Model.Nombre;
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+
+    string badgeEstado = Model.Estado switch
+    {
+        "Operativo" => "bg-success text-white",
+        "Desgastado" => "bg-warning text-dark",
+        "En Mantenimiento" => "bg-info text-dark",
+        "Fuera de Servicio" => "bg-danger text-white",
+        _ => "bg-secondary text-white"
+    };
+}
+
+<link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/lib/flatpickr/themes/airbnb.css" asp-append-version="true" />
+
+<!-- Cabecera -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mb-4 mt-2 px-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="@Url.Action("Index", "Equipos")" class="btn btn-sm btn-light rounded-circle shadow-sm border p-2" title="Volver">
+            <i class="bi bi-arrow-left fs-5"></i>
+        </a>
+        <h4 class="fw-bold text-dark mb-0">@Model.Nombre</h4>
+        <span class="badge rounded-pill px-3 py-1 @badgeEstado">@Model.Estado</span>
+    </div>
+    
+    <!-- Botones de Acción Centrados / Agrupados -->
+    <div class="d-flex justify-content-center gap-2">
+        <a href="@Url.Action("Edit", "Equipos", new { id = Model.Id })" class="btn btn-light rounded-pill px-4 shadow-sm border fw-semibold">
+            <i class="bi bi-pencil-fill me-1"></i>Editar
+        </a>
+        <button type="button" class="btn btn-brand rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoMantenimiento">
+            <i class="bi bi-wrench-adjustable me-1"></i>Registrar Servicio
+        </button>
+    </div>
+</div>
+
+<div class="row g-4 px-2 pb-5">
+    
+    <!-- Columna Izquierda: Ficha Resumen Compacta -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            
+            <h6 class="fw-bold text-dark mb-3 text-center border-bottom pb-2">Información del Equipo</h6>
+
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Código:</span>
+                <strong class="text-dark">@(Model.Codigo ?? "Sin código")</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Categoría:</span>
+                <strong class="text-dark">@Model.Categoria</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Ubicación:</span>
+                <strong class="text-dark">@(Model.Ubicacion ?? "Área General")</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Cantidad:</span>
+                <strong class="text-dark">@Model.Cantidad</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Desgaste:</span>
+                <strong class="@(Model.NivelDesgaste == "Crítico" ? "text-danger" : Model.NivelDesgaste == "Moderado" ? "text-warning" : "text-dark")">
+                    @(Model.NivelDesgaste ?? "Ninguno")
+                </strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Frecuencia:</span>
+                <strong class="text-dark">@(Model.FrecuenciaMantenimientoDias.HasValue ? $"{Model.FrecuenciaMantenimientoDias} días" : "No programado")</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Último Servicio:</span>
+                <strong class="text-dark">@(Model.UltimoMantenimiento?.ToString("dd/MM/yyyy") ?? "-")</strong>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom text-muted small">
+                <span>Próximo Servicio:</span>
+                @if (Model.MantenimientoVencido)
+                {
+                    <strong class="text-danger">Vencido (@Model.ProximoMantenimiento?.ToString("dd/MM/yyyy"))</strong>
+                }
+                else if (Model.ProximoMantenimiento.HasValue)
+                {
+                    <strong class="text-dark">@Model.ProximoMantenimiento.Value.ToString("dd/MM/yyyy")</strong>
+                }
+                else
+                {
+                    <span class="text-muted">-</span>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Observaciones))
+            {
+                <div class="mt-3 p-3 bg-light rounded-4 small">
+                    <span class="fw-bold text-muted d-block mb-1">Notas:</span>
+                    <span class="text-dark">@Model.Observaciones</span>
+                </div>
+            }
+
+            <!-- Botón Centrado para Abrir Modal y Completar Alerta -->
+            <div class="text-center mt-4 d-flex justify-content-center gap-2 flex-wrap">
+                @if (Model.RequiereAtencion)
+                {
+                    <form asp-action="CompletarAlerta" method="post" class="d-inline m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-sm" title="Marcar alerta como completada y resuelta">
+                            <i class="bi bi-check2-circle me-1"></i>Completar Alerta
+                        </button>
+                    </form>
+                }
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalNuevoMantenimiento">
+                    <i class="bi bi-plus-circle me-1"></i>Añadir Servicio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Historial / Bitácora -->
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h6 class="fw-bold text-dark mb-0">Historial de Intervenciones</h6>
+                <span class="badge bg-light text-muted border rounded-pill">@Model.Mantenimientos.Count registros</span>
+            </div>
+
+            @if (Model.Mantenimientos != null && Model.Mantenimientos.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">Fecha</th>
+                                <th class="border-0">Tipo</th>
+                                <th class="border-0">Detalle</th>
+                                <th class="border-0">Responsable</th>
+                                <th class="border-0">Estado</th>
+                                <th class="border-0 text-end">Costo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var mant in Model.Mantenimientos)
+                            {
+                                <tr>
+                                    <td class="text-nowrap fw-semibold">@mant.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@mant.Tipo</td>
+                                    <td class="text-muted" style="max-width: 260px;">@mant.Descripcion</td>
+                                    <td class="text-nowrap">@(mant.Responsable ?? "-")</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border rounded-pill px-2">@mant.EstadoPosterior</span>
+                                    </td>
+                                    <td class="text-end fw-bold text-nowrap">
+                                        @(mant.Costo.HasValue && mant.Costo.Value > 0 ? $"C${mant.Costo.Value:N2}" : "-")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-clock-history fs-2 d-block mb-1"></i>
+                    <p class="small mb-0">Sin servicios registrados aún.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Centrado: Registrar Mantenimiento con Flatpickr -->
+<div class="modal fade" id="modalNuevoMantenimiento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+        <div class="modal-content border-0 shadow-lg rounded-5 overflow-hidden">
+            <div class="modal-header border-0 pt-4 px-4 pb-0 text-center d-block">
+                <h5 class="modal-title fw-bold text-dark">Registrar Mantenimiento</h5>
+                <small class="text-muted">@Model.Nombre</small>
+            </div>
+
+            <form asp-action="RegistrarMantenimiento" method="post" id="formMantenimiento">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="EquipoId" value="@Model.Id" />
+
+                <div class="modal-body px-4 py-3">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Tipo de Intervención</label>
+                        <select name="Tipo" class="form-select rounded-pill border-0 px-3 py-2 bg-light" required>
+                            <option value="Mantenimiento Preventivo" selected>Mantenimiento Preventivo</option>
+                            <option value="Reparación / Correctivo">Reparación / Correctivo</option>
+                            <option value="Limpieza y Ajuste">Limpieza y Ajuste</option>
+                            <option value="Inspección Rutinaria">Inspección de Desgaste</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Fecha</label>
+                            <input type="text" id="fpFechaMantenimiento" name="Fecha" class="form-control rounded-pill border-0 px-3 py-2 bg-light text-center" placeholder="Seleccionar..." required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Responsable</label>
+                            <input type="text" name="Responsable" class="form-control rounded-pill border-0 px-3 py-2 bg-light" value="@User.Identity.Name" placeholder="Técnico/Staff" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Descripción del Trabajo</label>
+                        <textarea name="Descripcion" rows="2" class="form-control rounded-4 border-0 p-3 bg-light" placeholder="Detalle de lo realizado..." required></textarea>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Costo (C$)</label>
+                            <input type="number" step="0.01" min="0" name="Costo" id="modalInputCosto" class="form-control rounded-pill border-0 px-3 py-2 bg-light text-center" placeholder="0.00" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted">Estado Posterior</label>
+                            <select name="EstadoPosterior" class="form-select rounded-pill border-0 px-3 py-2 bg-light" required>
+                                <option value="Operativo" selected>Operativo</option>
+                                <option value="Desgastado">Desgastado</option>
+                                <option value="En Mantenimiento">En Mantenimiento</option>
+                                <option value="Fuera de Servicio">Fuera de Servicio</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <small class="text-muted text-center d-block mb-3" style="font-size: 0.8rem;">
+                        <i class="bi bi-info-circle me-1"></i>El costo ingresado se reflejará automáticamente en Egresos / Gastos.
+                    </small>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small text-muted">Próximo Mantenimiento</label>
+                        <input type="text" id="fpProximaFecha" name="ProximaFechaSugerida" class="form-control rounded-pill border-0 px-3 py-2 bg-light text-center" placeholder="Fecha opcional..." />
+                    </div>
+                </div>
+
+                <!-- Botón Centrado Único -->
+                <div class="modal-footer border-0 px-4 pb-4 pt-1 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm">Guardar Servicio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/flatpickr/flatpickr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/flatpickr/l10n/es.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar Flatpickr con tema Airbnb y locale es
+            flatpickr("#fpFechaMantenimiento", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: "today",
+                locale: "es"
+            });
+
+            flatpickr("#fpProximaFecha", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                locale: "es",
+                @if (Model.FrecuenciaMantenimientoDias.HasValue)
+                {
+                    <text>defaultDate: new Date(Date.now() + (@Model.FrecuenciaMantenimientoDias.Value * 86400000)),</text>
+                }
+            });
+        });
+    </script>
+}

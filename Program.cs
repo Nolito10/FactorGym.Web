@@ -94,6 +94,86 @@ using (var scope = app.Services.CreateScope())
             });
             db.SaveChanges();
         }
+
+        if (!db.Equipos.Any())
+        {
+            var hoySeed = DateTime.Today;
+            db.Equipos.AddRange(
+                new Equipo
+                {
+                    Nombre = "Par Mancuernas 25 Lbs",
+                    Codigo = "MC-25",
+                    Categoria = "Peso Libre",
+                    Ubicacion = "Zona de Mancuernas",
+                    Cantidad = 2,
+                    Estado = "Operativo",
+                    NivelDesgaste = "Leve",
+                    FrecuenciaMantenimientoDias = 180,
+                    UltimoMantenimiento = hoySeed.AddDays(-60),
+                    ProximoMantenimiento = hoySeed.AddDays(120),
+                    Observaciones = "Uso habitual. Perno apretado en última inspección.",
+                    FechaRegistro = DateTime.UtcNow
+                },
+                new Equipo
+                {
+                    Nombre = "Par Mancuernas 40 Lbs",
+                    Codigo = "MC-40",
+                    Categoria = "Peso Libre",
+                    Ubicacion = "Zona de Mancuernas",
+                    Cantidad = 1,
+                    Estado = "Desgastado",
+                    NivelDesgaste = "Moderado",
+                    FrecuenciaMantenimientoDias = 90,
+                    UltimoMantenimiento = hoySeed.AddDays(-80),
+                    ProximoMantenimiento = hoySeed.AddDays(10),
+                    Observaciones = "Goma desgastada y ligeramente cuarteada en el agarre derecho. Programar cambio de recubrimiento.",
+                    FechaRegistro = DateTime.UtcNow
+                },
+                new Equipo
+                {
+                    Nombre = "Caminadora Matrix #1",
+                    Codigo = "CAM-01",
+                    Categoria = "Cardio",
+                    Ubicacion = "Área de Cardio",
+                    Cantidad = 1,
+                    Estado = "Operativo",
+                    NivelDesgaste = "Ninguno",
+                    FrecuenciaMantenimientoDias = 90,
+                    UltimoMantenimiento = hoySeed.AddDays(-86),
+                    ProximoMantenimiento = hoySeed.AddDays(4), // Alerta preventiva próxima
+                    Observaciones = "Próxima a requerir lubricación y ajuste de tensión de la banda.",
+                    FechaRegistro = DateTime.UtcNow
+                },
+                new Equipo
+                {
+                    Nombre = "Prensa de Piernas 45°",
+                    Codigo = "PR-45",
+                    Categoria = "Fuerza y Máquinas",
+                    Ubicacion = "Zona de Musculación",
+                    Cantidad = 1,
+                    Estado = "Operativo",
+                    NivelDesgaste = "Ninguno",
+                    FrecuenciaMantenimientoDias = 90,
+                    UltimoMantenimiento = hoySeed.AddDays(-20),
+                    ProximoMantenimiento = hoySeed.AddDays(70),
+                    Observaciones = "Balineras y rieles lubricados con silicona industrial.",
+                    FechaRegistro = DateTime.UtcNow
+                },
+                new Equipo
+                {
+                    Nombre = "Discos Olímpicos 45 Lbs (Pares)",
+                    Codigo = "DC-45",
+                    Categoria = "Peso Libre",
+                    Ubicacion = "Rack de Discos",
+                    Cantidad = 6,
+                    Estado = "Operativo",
+                    NivelDesgaste = "Ninguno",
+                    Observaciones = "Discos de hierro con recubrimiento de uretano.",
+                    FechaRegistro = DateTime.UtcNow
+                }
+            );
+            db.SaveChanges();
+        }
     }
     catch (Exception ex)
     {

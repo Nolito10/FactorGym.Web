@@ -1,0 +1,158 @@
+@model FactorFitGym.Web.Models.Equipo
+
+@{
+    ViewData["Title"] = "Nuevo Equipo";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center py-3">
+    <div class="w-100" style="max-width: 680px;">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            
+            <div class="py-4 text-center border-bottom bg-light">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px;">
+                    <i class="bi bi-tools text-brand fs-4"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Nuevo Equipo / Maquinaria</h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post" id="formEquipo">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-7">
+                            <label asp-for="Nombre" class="form-label fw-bold small text-muted">Nombre <span class="text-danger">*</span></label>
+                            <input asp-for="Nombre" class="form-control rounded-pill border-0 px-3 py-2 bg-light" placeholder="Ej: Mancuernas 25 Lbs, Caminadora #1..." required />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Código Aleatorio No Editable -->
+                        <div class="col-12 col-md-5">
+                            <label class="form-label fw-bold small text-muted">Código</label>
+                            <div class="input-group rounded-pill overflow-hidden bg-light border-0">
+                                <span class="input-group-text bg-transparent border-0 pe-1 text-muted"><i class="bi bi-upc-scan"></i></span>
+                                <input asp-for="Codigo" id="inputCodigo" class="form-control bg-transparent border-0 fw-bold text-primary px-1" readonly placeholder="Auto..." />
+                                <button type="button" class="btn btn-sm bg-transparent border-0 text-muted pe-3" id="btnRegenerarCodigo" title="Generar nuevo número">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.72rem;">Automático según categoría</small>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="Categoria" class="form-label fw-bold small text-muted">Categoría <span class="text-danger">*</span></label>
+                            <select asp-for="Categoria" id="selectCategoria" class="form-select rounded-pill border-0 px-3 py-2 bg-light" required>
+                                <option value="" selected disabled>Seleccionar...</option>
+                                <option value="Peso Libre">Peso Libre (Mancuernas / Discos)</option>
+                                <option value="Fuerza y Máquinas">Fuerza y Máquinas</option>
+                                <option value="Cardio">Cardio</option>
+                                <option value="Accesorios y Funcional">Accesorios y Funcional</option>
+                            </select>
+                            <span asp-validation-for="Categoria" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label asp-for="Ubicacion" class="form-label fw-bold small text-muted">Ubicación</label>
+                            <input asp-for="Ubicacion" class="form-control rounded-pill border-0 px-3 py-2 bg-light" placeholder="Zona o sala" />
+                        </div>
+
+                        <div class="col-12 col-md-2">
+                            <label asp-for="Cantidad" class="form-label fw-bold small text-muted">Cantidad</label>
+                            <input asp-for="Cantidad" type="number" min="1" class="form-control rounded-pill border-0 px-2 py-2 bg-light text-center" />
+                        </div>
+
+                        <input type="hidden" asp-for="Estado" value="Operativo" />
+                        <input type="hidden" asp-for="NivelDesgaste" value="Ninguno" />
+
+                        <!-- Frecuencia de Mantenimiento (Semanal, Quincenal, Mensual) -->
+                        <div class="col-12 col-md-6">
+                            <label asp-for="FrecuenciaMantenimientoDias" class="form-label fw-bold small text-muted">Frecuencia de Mantenimiento</label>
+                            <select asp-for="FrecuenciaMantenimientoDias" id="selectFrecuencia" class="form-select rounded-pill border-0 px-3 py-2 bg-light">
+                                <option value="" selected>No programar</option>
+                                <option value="7">Semanal</option>
+                                <option value="15">Quincenal</option>
+                                <option value="30">Mensual</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small text-muted">Próximo Mantenimiento Determinado</label>
+                            <input type="text" id="displayProximoMantenimiento" class="form-control rounded-pill border-0 px-3 py-2 bg-light text-center fw-semibold text-dark" readonly placeholder="Sin programar" />
+                            <input type="hidden" asp-for="ProximoMantenimiento" id="hiddenProximoMantenimiento" />
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label fw-bold small text-muted">Observaciones</label>
+                            <textarea asp-for="Observaciones" rows="2" class="form-control rounded-4 border-0 p-3 bg-light" placeholder="Detalles o notas del equipo..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Botón Centrado Único -->
+                    <div class="text-center mt-4 pt-2">
+                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm">
+                            Guardar Equipo
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Generación de código según categoría + número aleatorio
+            function generarCodigo() {
+                const cat = document.getElementById('selectCategoria').value;
+                let prefijo = "EQ";
+                if (cat === "Peso Libre") prefijo = "PL";
+                else if (cat === "Fuerza y Máquinas") prefijo = "FM";
+                else if (cat === "Cardio") prefijo = "CR";
+                else if (cat === "Accesorios y Funcional") prefijo = "AF";
+                
+                const num = Math.floor(1000 + Math.random() * 9000);
+                document.getElementById('inputCodigo').value = prefijo + "-" + num;
+            }
+
+            document.getElementById('selectCategoria')?.addEventListener('change', generarCodigo);
+            document.getElementById('btnRegenerarCodigo')?.addEventListener('click', generarCodigo);
+
+            // Cálculo automático de fecha de mantenimiento según frecuencia
+            function calcularProximoMantenimiento() {
+                const freq = document.getElementById('selectFrecuencia').value;
+                const display = document.getElementById('displayProximoMantenimiento');
+                const hidden = document.getElementById('hiddenProximoMantenimiento');
+                
+                if (!freq || parseInt(freq) <= 0) {
+                    display.value = "Sin programar";
+                    hidden.value = "";
+                    return;
+                }
+                
+                const dias = parseInt(freq);
+                const fecha = new Date();
+                fecha.setDate(fecha.getDate() + dias);
+                
+                const yyyy = fecha.getFullYear();
+                const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dd = String(fecha.getDate()).padStart(2, '0');
+                
+                display.value = `${dd}/${mm}/${yyyy} (en ${dias} días)`;
+                hidden.value = `${yyyy}-${mm}-${dd}`;
+            }
+
+            document.getElementById('selectFrecuencia')?.addEventListener('change', calcularProximoMantenimiento);
+
+            // Generar código inicial si ya hay categoría seleccionada
+            if (document.getElementById('selectCategoria').value) {
+                generarCodigo();
+            }
+        });
+    </script>
+}

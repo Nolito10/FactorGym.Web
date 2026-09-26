@@ -1,0 +1,139 @@
+@model IEnumerable<FactorFitGym.Web.Models.HistorialMantenimiento>
+
+@{
+    ViewData["Title"] = "Bitácora de Servicios";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+
+    var totalCostos = Model.Where(m => m.Costo.HasValue).Sum(m => m.Costo.Value);
+}
+
+<!-- Cabecera Limpia -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mb-4 mt-2 px-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="@Url.Action("Index", "Equipos")" class="btn btn-sm btn-light rounded-circle shadow-sm border p-2" title="Volver">
+            <i class="bi bi-arrow-left fs-5"></i>
+        </a>
+        <h4 class="fw-bold text-dark mb-0">Bitácora de Servicios & Reparaciones</h4>
+    </div>
+
+    <!-- Botones Centrados -->
+    <div class="d-flex justify-content-center gap-2">
+        <a href="@Url.Action("Index", "Equipos")" class="btn btn-light rounded-pill px-4 shadow-sm border fw-semibold">
+            <i class="bi bi-tools me-1"></i>Inventario
+        </a>
+        <a href="@Url.Action("Create", "Equipos")" class="btn btn-brand rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-plus-circle me-1"></i>Nuevo Equipo
+        </a>
+    </div>
+</div>
+
+<!-- Resumen Compacto -->
+<div class="row g-3 mb-4 px-2">
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm p-3 rounded-4 bg-white text-center">
+            <span class="text-muted small fw-bold text-uppercase">Intervenciones</span>
+            <h3 class="fw-bold text-dark mb-0 mt-1">@Model.Count()</h3>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm p-3 rounded-4 bg-white text-center">
+            <span class="text-muted small fw-bold text-uppercase">Inversión en Reparaciones</span>
+            <h3 class="fw-bold text-success mb-0 mt-1">C$@totalCostos.ToString("N2")</h3>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm p-3 rounded-4 bg-white text-center">
+            <span class="text-muted small fw-bold text-uppercase">Reportes de Desgaste</span>
+            <h3 class="fw-bold text-warning mb-0 mt-1">@Model.Count(m => m.Tipo == "Reporte de Desgaste")</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card border-0 shadow-sm rounded-4 bg-white p-4 mx-2">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-dark mb-0">Historial Cronológico</h6>
+        <div class="input-group bg-light rounded-pill px-3 py-1" style="max-width: 250px;">
+            <span class="input-group-text bg-transparent border-0 pe-2 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" id="filtroHistorial" class="form-control bg-transparent border-0 shadow-none ps-0" placeholder="Buscar servicio...">
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th class="border-0">Fecha</th>
+                        <th class="border-0">Equipo</th>
+                        <th class="border-0">Tipo</th>
+                        <th class="border-0">Detalle</th>
+                        <th class="border-0">Responsable</th>
+                        <th class="border-0 text-center">Estado Resultante</th>
+                        <th class="border-0 text-end">Costo</th>
+                        <th class="border-0 text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="fila-historial">
+                            <td class="text-nowrap fw-semibold text-dark">
+                                @item.Fecha.ToString("dd/MM/yyyy")
+                            </td>
+                            <td>
+                                @if (item.Equipo != null)
+                                {
+                                    <a href="@Url.Action("Details", "Equipos", new { id = item.EquipoId })" class="text-decoration-none fw-bold text-dark">
+                                        @item.Equipo.Nombre
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Equipo #@item.EquipoId</span>
+                                }
+                            </td>
+                            <td>@item.Tipo</td>
+                            <td class="text-muted" style="max-width: 260px;">@item.Descripcion</td>
+                            <td>@(item.Responsable ?? "-")</td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border rounded-pill px-2">@item.EstadoPosterior</span>
+                            </td>
+                            <td class="text-end fw-bold">
+                                @(item.Costo.HasValue && item.Costo.Value > 0 ? $"C${item.Costo.Value:N2}" : "-")
+                            </td>
+                            <td class="text-center">
+                                @if (item.Equipo != null)
+                                {
+                                    <a href="@Url.Action("Details", "Equipos", new { id = item.EquipoId })" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                        <i class="bi bi-arrow-right text-muted"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-clock-history fs-2 d-block mb-1"></i>
+            <p class="small mb-0">Sin servicios registrados.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('filtroHistorial')?.addEventListener('keyup', function () {
+            let filter = this.value.toLowerCase().trim();
+            document.querySelectorAll('.fila-historial').forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
+}

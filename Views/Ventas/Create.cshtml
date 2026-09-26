@@ -137,6 +137,16 @@
     /* Scrollbar minimalista para el carrito */
     #cartContainer::-webkit-scrollbar { width: 6px; }
     #cartContainer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    /* Estilo limpio para input de cantidad */
+    .input-cart-qty::-webkit-inner-spin-button, 
+    .input-cart-qty::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+    .input-cart-qty {
+        -moz-appearance: textfield;
+        width: 36px;
+    }
 </style>
 
 @section Scripts {
@@ -204,10 +214,10 @@
 
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="ps-3 py-3 align-middle" style="width: 100px;">
+                        <td class="ps-3 py-3 align-middle" style="width: 105px;">
                             <div class="input-group input-group-sm rounded bg-white border">
                                 <button class="btn btn-light px-2 py-0 border-end fw-bold text-dark btn-minus" data-idx="${index}">-</button>
-                                <input type="text" class="form-control text-center bg-white px-0 border-0 fw-bold" value="${item.qty}" readonly>
+                                <input type="number" min="1" max="${item.maxStock}" class="form-control text-center bg-white px-1 border-0 fw-bold input-cart-qty" data-idx="${index}" value="${item.qty}">
                                 <button class="btn btn-light px-2 py-0 border-start fw-bold text-dark btn-plus" data-idx="${index}">+</button>
                             </div>
                         </td>
@@ -244,6 +254,29 @@
                         let idx = parseInt(this.dataset.idx);
                         if(cart[idx].qty < cart[idx].maxStock) { cart[idx].qty++; renderCart(); }
                         else { Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, icon: 'warning', title: `Límite de stock.` }); }
+                    });
+                });
+                document.querySelectorAll('.input-cart-qty').forEach(input => {
+                    input.addEventListener('change', function() {
+                        let idx = parseInt(this.dataset.idx);
+                        let val = parseInt(this.value);
+                        if (isNaN(val) || val < 1) {
+                            val = 1;
+                        } else if (val > cart[idx].maxStock) {
+                            val = cart[idx].maxStock;
+                            Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, icon: 'warning', title: `Solo hay ${cart[idx].maxStock} en stock.` });
+                        }
+                        cart[idx].qty = val;
+                        renderCart();
+                    });
+                    input.addEventListener('focus', function() {
+                        this.select();
+                    });
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            this.blur();
+                        }
                     });
                 });
                 document.querySelectorAll('.btn-remove').forEach(btn => {

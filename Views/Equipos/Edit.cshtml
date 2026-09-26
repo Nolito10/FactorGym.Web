@@ -1,0 +1,156 @@
+@model FactorFitGym.Web.Models.Equipo
+
+@{
+    ViewData["Title"] = "Editar Equipo";
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center py-3">
+    <div class="w-100" style="max-width: 680px;">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            
+            <div class="py-4 text-center border-bottom bg-light">
+                <div class="rounded-circle bg-white shadow-sm d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px;">
+                    <i class="bi bi-pencil-square text-brand fs-4"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Editar Equipo</h5>
+                <small class="text-muted">@Model.Nombre</small>
+            </div>
+
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post" id="formEditEquipo">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="FechaRegistro" />
+                    <input type="hidden" asp-for="UltimoMantenimiento" />
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-7">
+                            <label asp-for="Nombre" class="form-label fw-bold small text-muted">Nombre <span class="text-danger">*</span></label>
+                            <input asp-for="Nombre" class="form-control rounded-pill border-0 px-3 py-2 bg-light" required />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Código No Editable -->
+                        <div class="col-12 col-md-5">
+                            <label class="form-label fw-bold small text-muted">Código Asignado</label>
+                            <div class="input-group rounded-pill overflow-hidden bg-light border-0">
+                                <span class="input-group-text bg-transparent border-0 pe-1 text-muted"><i class="bi bi-lock-fill"></i></span>
+                                <input asp-for="Codigo" class="form-control bg-transparent border-0 fw-bold text-primary px-1" readonly />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="Categoria" class="form-label fw-bold small text-muted">Categoría <span class="text-danger">*</span></label>
+                            <select asp-for="Categoria" class="form-select rounded-pill border-0 px-3 py-2 bg-light" required>
+                                <option value="Peso Libre">Peso Libre (Mancuernas / Discos)</option>
+                                <option value="Fuerza y Máquinas">Fuerza y Máquinas</option>
+                                <option value="Cardio">Cardio</option>
+                                <option value="Accesorios y Funcional">Accesorios y Funcional</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label asp-for="Ubicacion" class="form-label fw-bold small text-muted">Ubicación</label>
+                            <input asp-for="Ubicacion" class="form-control rounded-pill border-0 px-3 py-2 bg-light" />
+                        </div>
+
+                        <div class="col-12 col-md-2">
+                            <label asp-for="Cantidad" class="form-label fw-bold small text-muted">Cantidad</label>
+                            <input asp-for="Cantidad" type="number" min="1" class="form-control rounded-pill border-0 px-2 py-2 bg-light text-center" />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="Estado" class="form-label fw-bold small text-muted">Estado</label>
+                            <select asp-for="Estado" class="form-select rounded-pill border-0 px-3 py-2 bg-light">
+                                <option value="Operativo">Operativo</option>
+                                <option value="Completado">Completado</option>
+                                <option value="Desgastado">Desgastado</option>
+                                <option value="En Mantenimiento">En Mantenimiento</option>
+                                <option value="Fuera de Servicio">Fuera de Servicio</option>
+                                <option value="De Baja">De Baja</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="NivelDesgaste" class="form-label fw-bold small text-muted">Nivel de Desgaste</label>
+                            <select asp-for="NivelDesgaste" class="form-select rounded-pill border-0 px-3 py-2 bg-light">
+                                <option value="Ninguno">Ninguno</option>
+                                <option value="Leve">Leve</option>
+                                <option value="Moderado">Moderado</option>
+                                <option value="Crítico">Crítico</option>
+                            </select>
+                        </div>
+
+                        <!-- Frecuencia de Mantenimiento -->
+                        <div class="col-12 col-md-6">
+                            <label asp-for="FrecuenciaMantenimientoDias" class="form-label fw-bold small text-muted">Frecuencia de Mantenimiento</label>
+                            <select asp-for="FrecuenciaMantenimientoDias" id="selectFrecuenciaEdit" class="form-select rounded-pill border-0 px-3 py-2 bg-light">
+                                <option value="">No programar</option>
+                                <option value="7">Semanal</option>
+                                <option value="15">Quincenal</option>
+                                <option value="30">Mensual</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small text-muted">Próximo Mantenimiento</label>
+                            <input type="text" id="displayProximoMantenimientoEdit" class="form-control rounded-pill border-0 px-3 py-2 bg-light text-center fw-semibold text-dark" readonly 
+                                   value="@(Model.ProximoMantenimiento.HasValue ? Model.ProximoMantenimiento.Value.ToString("dd/MM/yyyy") : "Sin programar")" />
+                            <input type="hidden" asp-for="ProximoMantenimiento" id="hiddenProximoMantenimientoEdit" 
+                                   value="@(Model.ProximoMantenimiento?.ToString("yyyy-MM-dd"))" />
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label fw-bold small text-muted">Observaciones</label>
+                            <textarea asp-for="Observaciones" rows="2" class="form-control rounded-4 border-0 p-3 bg-light"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Botón Centrado Único -->
+                    <div class="text-center mt-4 pt-2">
+                        <button type="submit" class="btn btn-brand rounded-pill px-5 fw-bold shadow-sm">
+                            Guardar Cambios
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function calcularProximoMantenimiento() {
+                const freq = document.getElementById('selectFrecuenciaEdit').value;
+                const display = document.getElementById('displayProximoMantenimientoEdit');
+                const hidden = document.getElementById('hiddenProximoMantenimientoEdit');
+                
+                if (!freq || parseInt(freq) <= 0) {
+                    display.value = "Sin programar";
+                    hidden.value = "";
+                    return;
+                }
+                
+                const dias = parseInt(freq);
+                const fecha = new Date();
+                fecha.setDate(fecha.getDate() + dias);
+                
+                const yyyy = fecha.getFullYear();
+                const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dd = String(fecha.getDate()).padStart(2, '0');
+                
+                display.value = `${dd}/${mm}/${yyyy} (en ${dias} días)`;
+                hidden.value = `${yyyy}-${mm}-${dd}`;
+            }
+
+            document.getElementById('selectFrecuenciaEdit')?.addEventListener('change', calcularProximoMantenimiento);
+        });
+    </script>
+}
