@@ -1,4 +1,4 @@
-﻿* {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -161,7 +161,7 @@ form {
             font-weight: 400;
         }
 
-    .input-box i {
+    .input-box > i {
         position: absolute;
         right: 22px;
         top: 50%;
@@ -174,6 +174,67 @@ form {
     .input-box input:focus ~ i {
         color: #142157;
     }
+
+    /* Botón interactivo para mostrar / ocultar contraseña */
+    .btn-toggle-password {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        outline: none;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        color: #a0a5b1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: color 0.25s ease, background-color 0.25s ease, transform 0.15s ease;
+        z-index: 5;
+        user-select: none;
+    }
+
+        .btn-toggle-password:hover {
+            color: #142157;
+            background-color: rgba(20, 33, 87, 0.08);
+        }
+
+        .btn-toggle-password:active {
+            transform: translateY(-50%) scale(0.92);
+        }
+
+        .btn-toggle-password:focus-visible {
+            outline: 2px solid #142157;
+            outline-offset: 1px;
+        }
+
+        .input-box input:focus ~ .btn-toggle-password {
+            color: #142157;
+        }
+
+        .btn-toggle-password i {
+            position: static;
+            transform: none;
+            font-size: 20px;
+            color: inherit;
+            pointer-events: none;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+    /* Ocultar icono nativo de Microsoft Edge / IE para evitar iconos duplicados */
+    .input-box input::-ms-reveal,
+    .input-box input::-ms-clear {
+        display: none;
+    }
+
+.d-none {
+    display: none !important;
+}
 
 .btn-login {
    
